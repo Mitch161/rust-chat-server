@@ -1,43 +1,70 @@
-struct Request {}
-
-struct Info {}
-
-struct Connect {}
-
-struct Disconnect {}
-
-struct ClientUpdate {}
-
-struct ClientInfo {}
-
-struct ClientRemove {}
-
-struct Client {}
-
-struct Success {}
-
-struct Error {}
-
-trait ClientRunnables {
-    fn client_execution(client: &Client);
+struct Request {
+    executable: Commands,
 }
 
-impl Runnables for Request {
-    fn run() {
+struct Info {
+    executable: Commands,
+}
+
+struct Connect {
+    executable: Commands,
+}
+
+struct Disconnect {
+    executable: Commands,
+}
+
+struct ClientUpdate {
+    executable: Commands,
+}
+
+struct ClientInfo {
+    executable: Commands,
+}
+
+struct ClientRemove {
+    executable: Commands,
+}
+
+struct Client {
+    executable: Commands,
+}
+
+struct Success {
+    executable: Commands,
+}
+
+struct Error {
+    executable: Commands,
+}
+
+trait Runnables {
+    fn execute(&self);
+}
+
+
+
+
+
+
+impl ServerRunnables for Request {
+    fn execute(server: &Server) {
     }
 }
 
-impl ClientRunnables for Info {
-    fn client_execution(client: &Client) {
-        let params = client.get_server_info();
-        let command = Commands::Success(Some(params));
+impl Runnables for Info {
+    fn run(server: &Server, stream, &TcpStream) {
+        println!("Server: info requested");
+        let params: HashMap<String, String> = [(String::from("name"), self.name.to_string().clone()), (String::from("owner"), self.author.to_string().clone())].iter().cloned().collect();
+        let command = Commands::Info(Some(params));
 
-        client.transmit_data(command.to_string().as_str());
+        server.transmit_data(stream, command.to_string().as_str());
     }
 }
 
-impl Runnables for Connect {
-    fn run() {
+impl ServerRunnables for Connect {
+    fn run(server: &Server, stream: &TcpStream) {
+
     }
 }
 
@@ -59,27 +86,27 @@ impl ClientRunnables for ClientUpdate {
     }
 }
 
-impl Runnables for ClientInfo {
+impl ClientRunnables for ClientInfo {
     fn run() {
     }
 }
 
-impl Runnables for ClientRemove {
+impl ClientRunnables for ClientRemove {
     fn run() {
     }
 }
 
-impl Runnables for Client {
+impl ClientRunnables for Client {
     fn run() {
     }
 }
 
-impl Runnables for Success {
+impl ClientRunnables for Success {
     fn run() {
     }
 }
 
-impl Runnables for Error {
+impl ClientRunnables for Error {
     fn run() {
     }
 }
