@@ -1,89 +1,98 @@
+use crate::server::utility;
+
 struct Request {
-    executable: Commands,
+    command: Commands,
 }
 
 struct Info {
-    executable: Commands,
+    command: Commands,
 }
 
 struct Connect {
-    executable: Commands,
+    command: Commands,
+    params: Option<HashMap<String, String>>,
 }
 
 struct Disconnect {
-    executable: Commands,
+    command: Commands,
 }
 
 struct ClientUpdate {
-    executable: Commands,
+    command: Commands,
 }
 
 struct ClientInfo {
-    executable: Commands,
+    command: Commands,
 }
 
 struct ClientRemove {
-    executable: Commands,
+    command: Commands,
 }
 
 struct Client {
-    executable: Commands,
+    command: Commands,
 }
 
 struct Success {
-    executable: Commands,
+    command: Commands,
 }
 
 struct Error {
-    executable: Commands,
+    command: Commands,
 }
 
-trait Runnables {
-    fn execute(&self);
+trait ServerRunnables {
+    fn execute(&self, stream: &TcpStream server: &Server);
 }
 
-
-
-
-
-
-impl ServerRunnables for Request {
-    fn execute(server: &Server) {
+trait ClientRunnables {
+    fn execute(&self, stream: &TcpStream client: &Client);
+    
+    fn execute(&self, stream: &TcpStream _: &Server) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
     }
 }
 
-impl Runnables for Info {
-    fn run(server: &Server, stream, &TcpStream) {
+impl ServerRunnables for Info {
+    fn run(&self, stream: &TcpStream _: &Server) {
         println!("Server: info requested");
-        let params: HashMap<String, String> = [(String::from("name"), self.name.to_string().clone()), (String::from("owner"), self.author.to_string().clone())].iter().cloned().collect();
-        let command = Commands::Info(Some(params));
 
-        server.transmit_data(stream, command.to_string().as_str());
+        utility::transmit_data(stream, self.command.to_string().as_str());
     }
 }
 
 impl ServerRunnables for Connect {
-    fn run(server: &Server, stream: &TcpStream) {
+    fn run(&self, stream: &TcpStream, server: &Server) {
+        let uuid = self.params.get("uuid").unwrap();
+        let username = self.params.get("name").unwrap();
+        let address = self.params.get("host").unwrap();
+        
+        println!("{}", format!("Server: new Client connection: _addr = {}", address ));
+        
+        let client = Client::new(stream, server.get_sender().clone(), &uuid, &username, &address);
 
+        let connected_clients = server.get_connected_clients();
+        connected_clients.lock().unwrap().insert(uuid.to_string(), client);
+        
+        let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
+        let new_client = Commands::Client(Some(params));
+        
+        let _ = connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(new_client.clone()));
     }
 }
 
-impl Runnables for Disconnect {
+
+
+
+
+
+impl ClientRunnables for Disconnect {
     fn run() {
     }
 }
 
 impl ClientRunnables for ClientUpdate {
-    fn client_execution(client: &Client) {
-        let mut command = Commands::Success(None);
-        client.transmit_data(command.to_string().as_str());
-
-        let data: HashMap<String, String> = [(String::from("uuid"), client.get_uuid())].iter().cloned().collect();
-        let command = Commands::ClientUpdate(Some(data));
-
-        self.server.update_all_clients(self.uuid.as_str(), command);
-
-    }
 }
 
 impl ClientRunnables for ClientInfo {
