@@ -67,6 +67,13 @@ impl Runnables<&Server> for Info {
     }
 }
 
+impl Runnables<&mut [u8; 1024]> for Info {
+    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
+
 
 impl Runnables<&Client> for Connect {
     fn execute(&self, stream: &TcpStream, _input: &Client) {
@@ -88,7 +95,12 @@ impl Runnables<&Server> for Connect {
     }
 }
 
-
+impl Runnables<&mut [u8; 1024]> for Connect {
+    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
 
 
 
@@ -110,6 +122,13 @@ impl Runnables<&Server> for Disconnect {
     }
 }
 
+impl Runnables<&mut [u8; 1024]> for Disconnect {
+    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
+
 
 impl Runnables<&Client> for ClientUpdate {
     fn execute(&self, stream: &TcpStream, input: &Client) {
@@ -120,6 +139,13 @@ impl Runnables<&Client> for ClientUpdate {
 
 impl Runnables<&Server> for ClientUpdate {
     fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
+
+impl Runnables<&mut [u8; 1024]> for ClientUpdate {
+    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
         utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
     }
@@ -139,10 +165,31 @@ impl Runnables<&Server> for ClientInfo {
     }
 }
 
+impl Runnables<&mut [u8; 1024]> for ClientInfo {
+    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
 
 
 
 
+
+
+impl Runnables<&Client> for ClientRemove {
+    fn execute(&self, stream: &TcpStream, _input: &Client) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
+
+impl Runnables<&Server> for ClientRemove {
+    fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
 
 impl Runnables<&mut [u8; 1024]> for ClientRemove {
     fn execute(&self, stream: &TcpStream, input: &mut [u8; 1024]) {
@@ -161,6 +208,21 @@ impl Runnables<&mut [u8; 1024]> for ClientRemove {
                 }
             }
         }
+    }
+}
+
+
+impl Runnables<&Client> for Client {
+    fn execute(&self, stream: &TcpStream, _input: &Client) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+    }
+}
+
+impl Runnables<&Server> for Client {
+    fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
     }
 }
 
