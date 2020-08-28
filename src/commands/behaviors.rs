@@ -1,52 +1,66 @@
 use crate::server::utility;
 
 struct Request {
-    command: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
 }
 
 struct Info {
-    command: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
 }
 
 struct Connect {
-    command: Commands,
-    uuid: String,
-    username: String,
-    address: String,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
+    //uuid: String,
+    //username: String,
+    //address: String,
 
 }
 
 struct Disconnect {
+    params: Option<HashMap<String, String>>,
 }
 
 struct ClientUpdate {
-    command: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
 }
 
 struct ClientInfo {
-    uuid: String,
+    params: Option<HashMap<String, String>>,
+    //uuid: String,
 }
 
 struct ClientRemove {
-    command: Commands,
-    error: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
+    //error: Commands,
 }
 
 struct Client {
-    command: Commands,
-    error: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
+    //error: Commands,
 }
 
 struct Success {
-    command: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
 }
 
 struct Error {
-    command: Commands,
+    params: Option<HashMap<String, String>>,
+    //command: Commands,
 }
 
 trait Runnables<T> {
     fn execute(&self, stream: &TcpStream, input: T);
+
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
 }
 
 
