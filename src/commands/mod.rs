@@ -11,45 +11,21 @@ use zeroize::Zeroize;
 
 #[derive(Clone, Debug)]
 pub enum Commands {
-    /* TODO: this is the new commands system but still needs work.
-     * Will be fixed soon, but continue with old version at the
-     * moment.
-     *
-    // Common fields:
-    executable: T,
-    params: Option<HashMap<String, String>>,
-    
-    // Variants:
-    Request {},
-    Info {},
+    Request(Request),
+    Info(Info),
 
-    Connect {},
-    Disconnect {},
+    HeartBeat(HeartBeat),
 
-    ClientUpdate {},
-    ClientInfo {},
-    ClientRemove {},
-    Client {},
+    Connect(Connect),
+    Disconnect(Disconnect),
 
-    Success {},
-    Error {},
-    */
+    ClientUpdate(ClientUpdate),
+    ClientInfo(ClientInfo),
+    ClientRemove(ClientRemove),
+    Client(Client),
 
-    Request(Option<HashMap<String, String>>),
-    Info(Option<HashMap<String, String>>),
-
-    HeartBeat(Option<HashMap<String, String>>),
-
-    Connect(Option<HashMap<String, String>>),
-    Disconnect(Option<HashMap<String, String>>),
-
-    ClientUpdate(Option<HashMap<String, String>>),
-    ClientInfo(Option<HashMap<String, String>>),
-    ClientRemove(Option<HashMap<String, String>>),
-    Client(Option<HashMap<String, String>>),
-
-    Success(Option<HashMap<String, String>>),
-    Error(Option<HashMap<String, String>>),
+    Success(Success),
+    Error(Error),
 }
 
 #[derive(Debug)]
@@ -58,19 +34,8 @@ pub enum CommandParseError {
     NoString,
 }
 
-/*trait Operations {
-    fn execute(&self);
-}*/
 
 impl Commands {
-    /*fn get_executable(&self) -> &T {
-        self.executable
-    }
-
-    fn get_params(&self) -> &Option<HashMap<String,String>> {
-        self.params
-    }*/
-
     fn compare_params(&self, params: &Option<HashMap<String, String>>, other_params: &Option<HashMap<String, String>>) -> bool {
         match (params, other_params) {
             (None, Some(_other_params)) => false,
@@ -97,12 +62,6 @@ impl Commands {
         }
     }
 }
-
-/*impl<T> Operations for Commands<T> {
-    fn execute(&self) {
-        self.executable.run();
-    }
-}*/
 
 impl PartialEq for Commands {
     fn eq(&self, other: &Self) -> bool {
@@ -190,23 +149,86 @@ impl FromStr for Commands {
         let params = if map.capacity() > 0 {Some(map)} else { None };
 
         Ok(match command {
-            "!request:" => Commands::Request(params),
-            "!info:" => Commands::Info(params),
+            "!request:" => {
+                Commands::Request(Request {
+                    params: params,
+                    //command: Commands::Request(params),
+                })
+            },
+            "!info:" => {
+                Commands::Info(Info {
+                    params: params,
+                    //command: Commands::Info(params),
+                })
+            },
+            "!heartbeat:" => {
+                Commands::Heartbeat(Heartbeat {
+                    params: params,
+                    //command: Commands::HeartBeat(params),
+                })
+            },
 
-            "!heartbeat:" => Commands::HeartBeat(params),
+            "!connect:" => {
+                Commands::Connect(Connect {
+                    params: params,
+                    //command: Commands::Connect(params),
+                    //uuid: map.get("uuid").unwrap(),
+                    //username: map.get("name").unwrap(),
+                    //address: map.get("host").unwrap(),
+                })
+            },
+            "!disconnect:" => {
+                Commands::Disconnect(Disconnect {
+                    params: params,
+                })
+            },
 
-            "!connect:" => Commands::Connect(params),
-            "!disconnect:" => Commands::Disconnect(params),
-
-            "!clientUpdate:" => Commands::ClientUpdate(params),
-            "!clientInfo:" => Commands::ClientInfo(params),
-            "!client:" => Commands::Client(params),
-            "!clientRemove:" => Commands::ClientRemove(params),
+            "!clientUpdate:" => {
+                Commands::ClientUpdate(ClientUpdate {
+                    params: params,
+                    //command: Commands::ClientUpdate(params),
+                })
+            },
+            "!clientInfo:" => {
+                Commands::ClientInfo(ClientInfo {
+                    params: params,
+                    //uuid: map.get("uuid").unwrap(),
+                })
+            },
+            "!client:" => {
+                Commands::Client(Client {
+                    params: params,
+                    //command: Commands::Client(params),
+                    //error: Commands::Error(None),
+                })
+            },
+            "!clientRemove:" => {
+                Commands::ClientRemove(ClientRemove {
+                    params: params,
+                    //command: Commands::ClientRemove(params),
+                    //error: Commands::Error(None),
+                })
+            },
             
-            "!success:" => Commands::Success(params),
-            "!error:" => Commands::Error(params),
+            "!success:" => {
+                Commands::Success(Success {
+                    params: params,
+                    //command: Commands::Success(params),
+                })
+            },
+            "!error:" => {
+                Commands::Error(Error {
+                    params: params,
+                    //command: Commands::Error(params),
+                })
+            },
             
-            _ => Commands::Error(None),
+            _ => {
+                Commands::Error(Error {
+                    params: params,
+                    //command: Commands::Error(None),
+                })
+            },
         })
     }
 }
@@ -217,7 +239,7 @@ impl From<String> for Commands {
             data
         } else {
             info!("Command: failed to parse with");
-            Commands::Error(None)
+            Commands::Error(Error {})
         }
     }
 }
@@ -229,6 +251,11 @@ impl From<&mut [u8; 1024]> for Commands {
         Commands::from(incoming_message)
     }
 }
+
+
+
+
+
 
 // TODO: check if unit tests still work
 /*#[cfg(test)]
