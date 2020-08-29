@@ -44,7 +44,7 @@ trait ParameterControl {
 impl Runnables<&Client> for Info {
     fn execute(&self, stream: &TcpStream, _input: &Client) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
@@ -53,16 +53,16 @@ impl Runnables<&Server> for Info {
         println!("Server: info requested");
 
         let params: HashMap<String, String> = [(String::from("name"), input.get_name()), (String::from("owner"), input.get_author())].iter().cloned().collect();
-        let command = Commands::Info(Some(params));
+        let command = Commands::Info( Info {params: Some(params),} );
 
-        utility::transmit_data(stream, self.command.to_string().as_str());
+        utility::transmit_data(stream, command.to_string().as_str());
     }
 }
 
 impl Runnables<&mut [u8; 1024]> for Info {
     fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
@@ -70,34 +70,36 @@ impl Runnables<&mut [u8; 1024]> for Info {
 impl Runnables<&Client> for Connect {
     fn execute(&self, stream: &TcpStream, _input: &Client) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 impl Runnables<&Server> for Connect {
     fn execute(&self, stream: &TcpStream, input: &Server) {
-        match self.params {
-            Some(map) => {
-                let uuid = map.get("uuid").unwrap();
-                let username = map.get("name").unwrap();
-                let address = map.get("host").unwrap();
+        let map = self.params.unwrap();
 
-                println!("{}", format!("Server: new Client connection: _addr = {}", address ));
-                
-                let client = Client::new(stream, input.get_sender().clone(), &uuid, &username, &address);
+        let mut uuid = map.get("uuid");
+        let mut username = map.get("name");
+        let mut address = map.get("host");
 
-                let connected_clients = input.get_connected_clients();
-                connected_clients.lock().unwrap().insert(uuid.to_string(), client);
+        if uuid.is_some() && username.is_some() && address.is_some() {
+            uuid = uuid.unwrap();
+            username = username.unwrap();
+            address = address.unwrap();
 
-                let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
-                let new_client = Commands::Client(Some(params));
+            println!("{}", format!("Server: new Client connection: _addr = {}", address ));
+            
+            let client = Client::new(stream, input.get_sender().clone(), uuid, username, address);
 
-                let _ = connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(new_client.clone()));
-            },
-            None => {
-                println!("Server: Invalid command sent");
-                utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
-            },
+            input.add_client(uuid.as_str(), &client);
+
+            let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
+            let new_client = Commands::Client( Client {params: Some(params)} );
+
+            input.update_all_clients(&new_client);
+        } else {
+            println!("Server: Invalid command sent");
+            utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
         }
     }
 }
@@ -105,7 +107,7 @@ impl Runnables<&Server> for Connect {
 impl Runnables<&mut [u8; 1024]> for Connect {
     fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
