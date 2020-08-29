@@ -149,42 +149,13 @@ impl<'z> Server<'z> {
                     stream.set_read_timeout(Some(Duration::from_millis(1000))).unwrap();
                     let _ = stream.set_nonblocking(false);
 
-                    let request = Commands::Request(None);
+                    let request = Commands::Request(Request {params: None,});
                     self.transmit_data(&stream, &request.to_string().as_str());
 
                     match self.read_data(&stream, &mut buffer) {
                         Ok(command) => {
                             println!("Server: new connection sent - {:?}", command);
-                            match command {
-                                Commands::Connect(Some(data)) => {
-                                    let uuid = data.get("uuid").unwrap();
-                                    let username = data.get("name").unwrap();
-                                    let address = data.get("host").unwrap();
-        
-                                    println!("{}", format!("Server: new Client connection: _addr = {}", address ));
-        
-                                    let client = Client::new(stream, self.sender.clone(), &uuid, &username, &address);
-
-                                    self.connected_clients.lock().unwrap().insert(uuid.to_string(), client);
-        
-                                    let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
-                                    let new_client = Commands::Client(Some(params));
-        
-                                    let _ = self.connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(new_client.clone()));
-                                },    
-                                // TODO: - correct connection reset error when getting info.
-                                Commands::Info(None) => {
-                                    println!("Server: info requested");
-                                    let params: HashMap<String, String> = [(String::from("name"), self.name.to_string().clone()), (String::from("owner"), self.author.to_string().clone())].iter().cloned().collect();
-                                    let command = Commands::Info(Some(params));
-        
-                                    self.transmit_data(&stream, command.to_string().as_str());
-                                },
-                                _ => {
-                                    println!("Server: Invalid command sent");
-                                    self.transmit_data(&stream, Commands::Error(None).to_string().as_str());
-                                },
-                            }
+                            command.execute(&stream, &self);
                         },
                         Err(_) => println!("ERROR: stream closed"),
                     }
