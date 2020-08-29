@@ -66,16 +66,16 @@ impl Commands {
 impl PartialEq for Commands {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Commands::Request(params), Commands::Request(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Info(params), Commands::Info(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Connect(params), Commands::Connect(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Disconnect(params), Commands::Disconnect(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::ClientUpdate(params), Commands::ClientUpdate(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::ClientInfo(params), Commands::ClientInfo(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::ClientRemove(params), Commands::ClientRemove(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Client(params), Commands::Client(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Success(params), Commands::Success(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Error(params), Commands::Error(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::Request(arguments), Commands::Request(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::Info(arguments), Commands::Info(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::Connect(arguments), Commands::Connect(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::Disconnect(arguments), Commands::Disconnect(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::ClientUpdate(arguments), Commands::ClientUpdate(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::ClientInfo(arguments), Commands::ClientInfo(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::ClientRemove(arguments), Commands::ClientRemove(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::Client(arguments), Commands::Client(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::Success(arguments), Commands::Success(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
+            (Commands::Error(arguments), Commands::Error(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
             _ => false,
         }
     }
