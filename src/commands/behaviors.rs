@@ -1,69 +1,44 @@
 use crate::server::utility;
 
-struct Request {
-    params: Option<HashMap<String, String>>,
-    //command: Commands,
-}
+struct Request {}
 
-struct Info {
-    params: Option<HashMap<String, String>>,
-    //command: Commands,
-}
+struct Info {}
 
 struct Connect {
     params: Option<HashMap<String, String>>,
-    //command: Commands,
-    //uuid: String,
-    //username: String,
-    //address: String,
-
 }
 
-struct Disconnect {
-    params: Option<HashMap<String, String>>,
-}
+struct Disconnect {}
 
-struct ClientUpdate {
-    params: Option<HashMap<String, String>>,
-    //command: Commands,
-}
+struct ClientUpdate {}
 
 struct ClientInfo {
     params: Option<HashMap<String, String>>,
-    //uuid: String,
 }
 
 struct ClientRemove {
     params: Option<HashMap<String, String>>,
-    //command: Commands,
-    //error: Commands,
 }
 
 struct Client {
     params: Option<HashMap<String, String>>,
-    //command: Commands,
-    //error: Commands,
 }
 
 struct Success {
     params: Option<HashMap<String, String>>,
-    //command: Commands,
 }
 
-struct Error {
-    params: Option<HashMap<String, String>>,
-    //command: Commands,
-}
+struct Error {}
 
 trait Runnables<T> {
     fn execute(&self, stream: &TcpStream, input: T);
+}
 
+trait ParameterControl {
     fn get_params(&self) -> Option<HashMap<String, String>> {
         self.params
     }
 }
-
-
 
 
 impl Runnables<&Client> for Info {
@@ -74,15 +49,18 @@ impl Runnables<&Client> for Info {
 }
 
 impl Runnables<&Server> for Info {
-    fn execute(&self, stream: &TcpStream, _input: &Server) {
+    fn execute(&self, stream: &TcpStream, input: &Server) {
         println!("Server: info requested");
+
+        let params: HashMap<String, String> = [(String::from("name"), input.get_name()), (String::from("owner"), input.get_author())].iter().cloned().collect();
+        let command = Commands::Info(Some(params));
 
         utility::transmit_data(stream, self.command.to_string().as_str());
     }
 }
 
 impl Runnables<&mut [u8; 1024]> for Info {
-    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
         utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
     }
@@ -97,20 +75,35 @@ impl Runnables<&Client> for Connect {
 }
 
 impl Runnables<&Server> for Connect {
-    fn run(&self, stream: &TcpStream, input: &Server) {
-        println!("{}", format!("Server: new Client connection: _addr = {}", self.address ));
-        
-        let client = Client::new(stream, input.get_sender().clone(), &self.uuid, &self.username, &self.address);
+    fn execute(&self, stream: &TcpStream, input: &Server) {
+        match self.params {
+            Some(map) => {
+                let uuid = map.get("uuid").unwrap();
+                let username = map.get("name").unwrap();
+                let address = map.get("host").unwrap();
 
-        let connected_clients = input.get_connected_clients();
-        connected_clients.lock().unwrap().insert(uuid.to_string(), client);
-        
-        let _ = connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(self.command.clone()));
+                println!("{}", format!("Server: new Client connection: _addr = {}", address ));
+                
+                let client = Client::new(stream, input.get_sender().clone(), &uuid, &username, &address);
+
+                let connected_clients = input.get_connected_clients();
+                connected_clients.lock().unwrap().insert(uuid.to_string(), client);
+
+                let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
+                let new_client = Commands::Client(Some(params));
+
+                let _ = connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(new_client.clone()));
+            },
+            None => {
+                println!("Server: Invalid command sent");
+                utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+            },
+        }
     }
 }
 
 impl Runnables<&mut [u8; 1024]> for Connect {
-    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
         utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
     }
@@ -137,7 +130,7 @@ impl Runnables<&Server> for Disconnect {
 }
 
 impl Runnables<&mut [u8; 1024]> for Disconnect {
-    fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
         utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
     }
@@ -146,7 +139,7 @@ impl Runnables<&mut [u8; 1024]> for Disconnect {
 
 impl Runnables<&Client> for ClientUpdate {
     fn execute(&self, stream: &TcpStream, input: &Client) {
-        utility::transmit_data(stream, self.command.to_string().as_str());
+        utility::transmit_data(stream, Commands::Success(Success {params: None,}).to_string().as_str());
         let _ = input.get_server_sender().send(ServerMessages::RequestUpdate(input.get_stream_arc().clone()));
     }
 }
@@ -168,7 +161,8 @@ impl Runnables<&mut [u8; 1024]> for ClientUpdate {
 
 impl Runnables<&Client> for ClientInfo {
     fn execute(&self, stream: &TcpStream, input: &Client) {
-        let _ = input.get_server_sender().send(ServerMessages::RequestInfo(self.uuid.clone(), input.get_stream_arc().clone()));
+        let uuid =
+        let _ = input.get_server_sender().send(ServerMessages::RequestInfo(uuid.clone(), input.get_stream_arc().clone()));
     }
 }
 
@@ -269,3 +263,11 @@ impl Runnables for Error {
     fn execute() {
     }
 }*/
+
+
+impl ParameterControl for HeartBeat {}
+impl ParameterControl for Connect {}
+impl ParameterControl for ClientInfo {}
+impl ParameterControl for ClientRemove {}
+impl ParameterControl for Client {}
+impl ParameterControl for Success {}
