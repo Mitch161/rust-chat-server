@@ -88,17 +88,17 @@ impl ToString for Commands {
         let mut out_string = String::new();
 
         let (command, parameters) = match self {
-            Commands::Request(arguments) => { ("!request:", arguments) },
-            Commands::Info(arguments) => { ("!info:", arguments) },
-            Commands::HeartBeat(arguments) => {("!heartbeat:", arguments)},
-            Commands::Connect(arguments) => { ("!connect:", arguments) },
-            Commands::Disconnect(arguments) => { ("!disconnect:", arguments) },
-            Commands::ClientUpdate(arguments) => { ("!clientUpdate:", arguments) },
-            Commands::ClientInfo(arguments) => { ("!clientInfo:", arguments) },
-            Commands::ClientRemove(arguments) => { ("!clientRemove", arguments) }
-            Commands::Client(arguments) => { ("!client:", arguments) },
-            Commands::Success(arguments) => { ("!success:", arguments) },
-            Commands::Error(arguments) => { ("!error:", arguments) },
+            Commands::Request(arguments) => { ("!request:", arguments.get_params()) },
+            Commands::Info(arguments) => { ("!info:", arguments.get_params()) },
+            Commands::HeartBeat(arguments) => {("!heartbeat:", arguments.get_params())},
+            Commands::Connect(arguments) => { ("!connect:", arguments.get_params()) },
+            Commands::Disconnect(arguments) => { ("!disconnect:", arguments.get_params()) },
+            Commands::ClientUpdate(arguments) => { ("!clientUpdate:", arguments.get_params()) },
+            Commands::ClientInfo(arguments) => { ("!clientInfo:", arguments.get_params()) },
+            Commands::ClientRemove(arguments) => { ("!clientRemove", arguments.get_params()) },
+            Commands::Client(arguments) => { ("!client:", arguments.get_params()) },
+            Commands::Success(arguments) => { ("!success:", arguments.get_params()) },
+            Commands::Error(arguments) => { ("!error:", arguments.get_params()) },
         };
 
         out_string.push_str(command);
