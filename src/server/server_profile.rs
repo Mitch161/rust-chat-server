@@ -199,12 +199,13 @@ impl<'z> Server<'z> {
         Ok(command)
     }
 
-    fn update_all_clients(&self, command: Commands){
-        let client_map = self.connected_clients.lock().unwrap();
-        
-        for client in client_map.values() {
-            client.get_sender().send(command.clone()).unwrap();
-        }
+    fn update_all_clients(&self, command: &Commands) {
+        let _ = self.connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(command.clone()));
+    }
+
+    pub fn add_client(&self, uuid: &str, client: &Client) {
+        let mut clients = self.connected_clients.lock().unwrap();
+        clients.insert(uuid.to_string(), client.clone());
     }
 
     pub fn remove_client(&self, uuid: &str){
