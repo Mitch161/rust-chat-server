@@ -36,7 +36,7 @@ pub enum CommandParseError {
 }
 
 
-impl PartialEq for Commands {
+impl<T: Runnables<&Client> + Runnables<&Server> + Runnables<&mut [u8; 1024]>> PartialEq for Commands<T> {
     fn eq(&self, other: &Self) -> bool {
         let Commands::Type(ref arguments_a) = self;
         let Commands::Type(ref arguments_b) = other;
@@ -46,7 +46,7 @@ impl PartialEq for Commands {
 }
 
 
-impl ToString for Commands {
+impl<T: Runnables<&Client> + Runnables<&Server> + Runnables<&mut [u8; 1024]>> ToString for Commands<T> {
 
     fn to_string(&self) -> std::string::String {
         let mut out_string = String::new();
@@ -56,7 +56,7 @@ impl ToString for Commands {
     }
 }
 
-impl FromStr for Commands {
+impl<T: Runnables<&Client> + Runnables<&Server> + Runnables<&mut [u8; 1024]>> FromStr for Commands<T> {
     type Err = CommandParseError;
 
     fn from_str(data: &str) -> std::result::Result<Self, Self::Err> {
@@ -130,7 +130,7 @@ impl FromStr for Commands {
     }
 }
 
-impl From<String> for Commands {
+impl<T: Runnables<&Client> + Runnables<&Server> + Runnables<&mut [u8; 1024]>> From<String> for Commands<T> {
     fn from(data: String) -> Self {
         if let Ok(data) = data.as_str().parse() {
             data
@@ -141,7 +141,7 @@ impl From<String> for Commands {
     }
 }
 
-impl From<&mut [u8; 1024]> for Commands {
+impl<T: Runnables<&Client> + Runnables<&Server> + Runnables<&mut [u8; 1024]>> From<&mut [u8; 1024]> for Commands<T> {
     fn from(data: &mut [u8; 1024]) -> Self {
         let incoming_message = String::from(String::from_utf8_lossy(data));
         data.zeroize();
