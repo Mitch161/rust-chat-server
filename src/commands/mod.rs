@@ -88,37 +88,8 @@ impl ToString for Commands {
     fn to_string(&self) -> std::string::String {
         let mut out_string = String::new();
 
-        let (command, parameters) = match self {
-            Commands::Request(arguments) => { ("!request:", None) },
-            Commands::Info(arguments) => { ("!info:", None) },
-            Commands::HeartBeat(arguments) => {("!heartbeat:", arguments.get_params())},
-            Commands::Connect(arguments) => { ("!connect:", arguments.get_params()) },
-            Commands::Disconnect(arguments) => { ("!disconnect:", None) },
-            Commands::ClientUpdate(arguments) => { ("!clientUpdate:", None) },
-            Commands::ClientInfo(arguments) => { ("!clientInfo:", arguments.get_params()) },
-            Commands::ClientRemove(arguments) => { ("!clientRemove", arguments.get_params()) },
-            Commands::Client(arguments) => { ("!client:", arguments.get_params()) },
-            Commands::Success(arguments) => { ("!success:", arguments.get_params()) },
-            Commands::Error(arguments) => { ("!error:", None) },
-        };
-
-        out_string.push_str(command);
-
-        if parameters.is_some(`) {
-            let hash_map = parameters.borrow().as_ref().unwrap();
-            for (k, v) in hash_map.iter() {
-                out_string.push_str(" ");
-                out_string.push_str(k.as_str());
-                out_string.push_str(":");
-
-                if v.contains(":") {
-                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
-                } else {
-                    out_string.push_str(v.as_str());
-                }
-            }
-        }
-        out_string
+        let Commands::Type(ref arguments) = self;
+        arguments.to_string()
     }
 }
 
@@ -202,7 +173,7 @@ impl From<String> for Commands {
             data
         } else {
             info!("Command: failed to parse with");
-            Commands::Error(Error {})
+            Commands::Type(Error {})
         }
     }
 }
