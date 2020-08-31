@@ -10,8 +10,9 @@ use zeroize::Zeroize;
 //use dashmap::DashMap;
 
 #[derive(Clone, Debug)]
-pub enum Commands {
-    Request(Request),
+pub enum Commands<T: Runnables<&Client> + Runnables<&Server> + Runnables<&mut [u8; 1024]>> {
+    Type(T),
+    /*Request(Request),
     Info(Info),
 
     HeartBeat(HeartBeat),
@@ -25,7 +26,7 @@ pub enum Commands {
     Client(Client),
 
     Success(Success),
-    Error(Error),
+    Error(Error),*/
 }
 
 #[derive(Debug)]
@@ -103,7 +104,7 @@ impl ToString for Commands {
 
         out_string.push_str(command);
 
-        if parameters.is_some() {
+        if parameters.is_some(`) {
             let hash_map = parameters.borrow().as_ref().unwrap();
             for (k, v) in hash_map.iter() {
                 out_string.push_str(" ");
