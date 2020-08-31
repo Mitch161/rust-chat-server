@@ -103,30 +103,8 @@ impl Client {
             Ok(command) => {
                 // match incomming commands
                 println!("command");
-                match command {
-                    Commands::Type(Disconnect {}) => {
-                        self.server_sender.send(ServerMessages::Disconnect(self.uuid.clone())).expect("sending message to server failed");
-                        self.stream_arc.lock().unwrap().shutdown(Shutdown::Both).expect("shutdown call failed");
-                    },
-                    Commands::Type(HeartBeat {params: None,}) => {
-                        *self.last_heartbeat.lock().unwrap() = Instant::now();
-                        self.transmit_data(Commands::Type(Success {params: None,}).to_string().as_str());
-                    },
-                    Commands::Type(ClientUpdate {}) => {
-                        self.transmit_data(Commands::Type(Success {params: None,}).to_string().as_str());
-                        let _ = self.server_sender.send(ServerMessages::RequestUpdate(self.stream_arc.clone()));
-                    },
-                    Commands::Type( ClientInfo {params: Some(params),} ) => {
-                        let uuid = params.get("uuid").unwrap();
-                        let _ = self.server_sender.send(ServerMessages::RequestInfo(uuid.clone(), self.stream_arc.clone()));
-                    },
-                    // TODO: may or may not be needed?
-                    Commands::Type(Error {}) => {
-                    },
-                    _ => {
-                        self.transmit_data(Commands::Type(Error {}).to_string().as_str());
-                    },
-                }
+                let Commands::Type(command) = command;
+                command.execute(&self.stream_arc, &self);
             },
             Err(_) => {
                 // no data was read
@@ -137,40 +115,9 @@ impl Client {
         // test to see if there is anything for the client to receive from its channel
         match self.receiver.try_recv() {
             /*command is on the channel*/ 
-            Ok(Commands::Type(ClientRemove {params: Some(params),} )) => {
-                let mut retry: u8 = 3;
-                'retry_loop1: loop {
-                    if retry < 1 {
-                        self.transmit_data(Commands::Type(Error {}).to_string().as_str());
-                        break 'retry_loop1
-                    } else {                    
-                        self.transmit_data(Commands::Type(ClientRemove {params: Some(params.clone()),} ).to_string().as_str());
-                        
-                        if self.read_data(&mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None,}) {
-                            break 'retry_loop1;
-                        } else {
-                            retry -= 1;
-                        }
-                    }
-                }
-            },
-            Ok(Commands::Type(Client {params: Some(params),} )) => {
-                let mut retry: u8 = 3;
-                'retry_loop2: loop {
-                    if retry < 1 {
-                        self.transmit_data(Commands::Type(Error {}).to_string().as_str());
-                        break 'retry_loop2;
-                    } else {
-                        self.transmit_data(Commands::Type(Client {params: Some(params.clone()),} ).to_string().as_str());
-                        
-                        if self.read_data(&mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None},) {
-                            break 'retry_loop2;
-                        } else {
-                            retry -= 1;
-                        }
-                    }
-                }
-
+            Ok(command) => {
+                let Commands::Type(command) = command;
+                command.execute(&self.stream_arc, &mut buffer);
             },
             /*no data available yet*/
             Err(TryRecvError::Empty) => {},
