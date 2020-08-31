@@ -149,50 +149,50 @@ impl FromStr for Commands {
 
         let params = if map.capacity() > 0 {Some(map)} else { None };
 
-        Ok(match command {
-            "!request:" if params.is_none() => Commands::Request(Request {}),
-            "!info:" if params.is_none() => Commands::Info(Info {}),
+        Ok(Commands::Type(match command {
+            "!request:" if params.is_none() => Request {},
+            "!info:" if params.is_none() => Info {},
 
             "!heartbeat:" => {
-                Commands::Heartbeat(Heartbeat {
+                Heartbeat {
                     params: params,
-                })
+                }
             },
 
             "!connect:" if params.is_some() => {
-                Commands::Connect(Connect {
+                Connect {
                     params: params,
-                })
+                }
             },
-            "!disconnect:" if params.is_none() => Commands::Disconnect(Disconnect {}),
+            "!disconnect:" if params.is_none() => Disconnect {},
 
-            "!clientUpdate:" if params.is_none() => Commands::ClientUpdate(ClientUpdate {}),
+            "!clientUpdate:" if params.is_none() => ClientUpdate {},
             "!clientInfo:" if params.is_some() => {
-                Commands::ClientInfo(ClientInfo {
+                ClientInfo {
                     params: params,
-                })
+                }
             },
             "!client:" if params.is_some() => {
-                Commands::Client(Client {
+                Client {
                     params: params,
-                })
+                }
             },
             "!clientRemove:" if params.is_some() => {
-                Commands::ClientRemove(ClientRemove {
+                ClientRemove {
                     params: params,
-                })
+                }
             },
             
             "!success:" => {
-                Commands::Success(Success {
+                Success {
                     params: params,
                     //command: Commands::Success(params),
-                })
+                }
             },
-            "!error:" if params.is_none() => Commands::Error(Error {}),
+            "!error:" if params.is_none() => Error {},
             
-            _ => Commands::Error(Error {}),
-        })
+            _ => Error {},
+        }))
     }
 }
 
