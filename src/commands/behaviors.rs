@@ -276,6 +276,248 @@ impl Runnables for Error {
     }
 }*/
 
+impl ToString for Request {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!request:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for Info {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!info:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for HeartBeat {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!heartbeat:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for Connect {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!connect:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for Disconnect {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!disconnect:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for ClientUpdate {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!clientUpdate:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for ClientInfo {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!clientInfo:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for ClientRemove {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!clientRemove:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for Client {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!client:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for Success {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!success:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
+impl ToString for Error {
+    fn to_string(&self) -> std::string::String {
+        let mut out_string = String::from("!error:");
+
+        if self.params.is_some(`) {
+            let hash_map = self.params.borrow().as_ref().unwrap();
+            for (k, v) in hash_map.iter() {
+                out_string.push_str(" ");
+                out_string.push_str(k.as_str());
+                out_string.push_str(":");
+
+                if v.contains(":") {
+                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
+                } else {
+                    out_string.push_str(v.as_str());
+                }
+            }
+        }
+        out_string
+    }
+}
+
 
 impl ParameterControl for HeartBeat {}
 impl ParameterControl for Connect {}
