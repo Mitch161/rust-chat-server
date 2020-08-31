@@ -276,6 +276,316 @@ impl Runnables for Error {
     }
 }*/
 
+impl PartialEq for Request {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for Info {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for HeartBeat {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for Connect {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for Disconnect {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for ClientUpdate {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for ClientInfo {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for ClientRemove {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for Client {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for Success {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl PartialEq for Error {
+    fn eq(&self, other: &Self) -> bool {
+        match (self.params, other.get_params()) {
+            (None, Some(_other_params)) => false,
+            (Some(_params), None) => false,
+            (None, None) => true,
+            (Some(params), Some(other_params)) => {
+                let mut result = false;
+                
+                if params.len() == other_params.len() {
+                    for (key, value) in params.iter() {
+                        if let Some(other_value) = other_params.get(key) {
+                            if value != other_value {
+                                result = false;
+                                break;
+                            } else {
+                                result = true;
+                            }
+                        }
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+
+
 impl ToString for Request {
     fn to_string(&self) -> std::string::String {
         let mut out_string = String::from("!request:");
