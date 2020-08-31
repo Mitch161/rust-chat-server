@@ -115,11 +115,11 @@ impl<'z> Server<'z> {
                                 let stream = stream_arc.lock().unwrap();
                                 self.transmit_data(&stream, v.to_string().as_str());
 
-                                if self.read_data(&stream, &mut buffer).unwrap_or(Commands::Error(None)) == Commands::Success(None) {
+                                if self.read_data(&stream, &mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None,}) {
                                     println!("Success Confirmed");
                                 } else {
                                     println!("no success read");
-                                    let error = Commands::Error(None);
+                                    let error = Commands::Type(Error {});
                                     self.transmit_data(&stream, error.to_string().as_str());
                                 }
                             }
@@ -129,17 +129,17 @@ impl<'z> Server<'z> {
                             
                             if let Some(client) = self.connected_clients.lock().unwrap().get(&uuid) {
                                 let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
-                                let command = Commands::Success(Some(params));
+                                let command = Commands::Type(Success {params: Some(params),} );
                                 self.transmit_data(&stream, command.to_string().as_str());
                             } else {
-                                let command = Commands::Success(None);
+                                let command = Commands::Type(Success {params: None,} );
                                 self.transmit_data(&stream, command.to_string().as_str());
                             }
                         },
                         ServerMessages::Disconnect(uuid) => {
                             self.remove_client(uuid.as_str());
                             let params: HashMap<String, String> = [(String::from("uuid"), uuid)].iter().cloned().collect();
-                            self.update_all_clients(Commands::ClientRemove(Some(params)));
+                            self.update_all_clients(Commands::Type(ClientRemove {params: Some(params),} ));
                         },
                     }
                 }
@@ -149,12 +149,13 @@ impl<'z> Server<'z> {
                     stream.set_read_timeout(Some(Duration::from_millis(1000))).unwrap();
                     let _ = stream.set_nonblocking(false);
 
-                    let request = Commands::Request(Request {params: None,});
+                    let request = Commands::Type(Request {params: None,});
                     self.transmit_data(&stream, &request.to_string().as_str());
 
                     match self.read_data(&stream, &mut buffer) {
                         Ok(command) => {
                             println!("Server: new connection sent - {:?}", command);
+                            let Commands::Type(command) = command;
                             command.execute(&stream, &self);
                         },
                         Err(_) => println!("ERROR: stream closed"),

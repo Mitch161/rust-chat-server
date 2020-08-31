@@ -104,27 +104,27 @@ impl Client {
                 // match incomming commands
                 println!("command");
                 match command {
-                    Commands::Disconnect(None) => {
+                    Commands::Type(Disconnect {}) => {
                         self.server_sender.send(ServerMessages::Disconnect(self.uuid.clone())).expect("sending message to server failed");
                         self.stream_arc.lock().unwrap().shutdown(Shutdown::Both).expect("shutdown call failed");
                     },
-                    Commands::HeartBeat(None) => {
+                    Commands::Type(HeartBeat {params: None,}) => {
                         *self.last_heartbeat.lock().unwrap() = Instant::now();
-                        self.transmit_data(Commands::Success(None).to_string().as_str());
+                        self.transmit_data(Commands::Type(Success {params: None,}).to_string().as_str());
                     },
-                    Commands::ClientUpdate(None) => {
-                        self.transmit_data(Commands::Success(None).to_string().as_str());
+                    Commands::Type(ClientUpdate {}) => {
+                        self.transmit_data(Commands::Type(Success {params: None,}).to_string().as_str());
                         let _ = self.server_sender.send(ServerMessages::RequestUpdate(self.stream_arc.clone()));
                     },
-                    Commands::ClientInfo(Some(params)) => {
+                    Commands::Type( ClientInfo {params: Some(params),} ) => {
                         let uuid = params.get("uuid").unwrap();
                         let _ = self.server_sender.send(ServerMessages::RequestInfo(uuid.clone(), self.stream_arc.clone()));
                     },
                     // TODO: may or may not be needed?
-                    Commands::Error(None) => {
+                    Commands::Type(Error {}) => {
                     },
                     _ => {
-                        self.transmit_data(Commands::Error(None).to_string().as_str());
+                        self.transmit_data(Commands::Type(Error {}).to_string().as_str());
                     },
                 }
             },
@@ -137,16 +137,16 @@ impl Client {
         // test to see if there is anything for the client to receive from its channel
         match self.receiver.try_recv() {
             /*command is on the channel*/ 
-            Ok(Commands::ClientRemove(Some(params))) => {
+            Ok(Commands::Type(ClientRemove {params: Some(params),} )) => {
                 let mut retry: u8 = 3;
                 'retry_loop1: loop {
                     if retry < 1 {
-                        self.transmit_data(Commands::Error(None).to_string().as_str());
+                        self.transmit_data(Commands::Type(Error {}).to_string().as_str());
                         break 'retry_loop1
                     } else {                    
-                        self.transmit_data(Commands::ClientRemove(Some(params.clone())).to_string().as_str());
+                        self.transmit_data(Commands::Type(ClientRemove {params: Some(params.clone()),} ).to_string().as_str());
                         
-                        if self.read_data(&mut buffer).unwrap_or(Commands::Error(None)) == Commands::Success(None) {
+                        if self.read_data(&mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None,}) {
                             break 'retry_loop1;
                         } else {
                             retry -= 1;
@@ -154,16 +154,16 @@ impl Client {
                     }
                 }
             },
-            Ok(Commands::Client(Some(params))) => {
+            Ok(Commands::Type(Client {params: Some(params),} )) => {
                 let mut retry: u8 = 3;
                 'retry_loop2: loop {
                     if retry < 1 {
-                        self.transmit_data(Commands::Error(None).to_string().as_str());
+                        self.transmit_data(Commands::Type(Error {}).to_string().as_str());
                         break 'retry_loop2;
                     } else {
-                        self.transmit_data(Commands::Client(Some(params.clone())).to_string().as_str());
+                        self.transmit_data(Commands::Type(Client {params: Some(params.clone()),} ).to_string().as_str());
                         
-                        if self.read_data(&mut buffer).unwrap_or(Commands::Error(None)) == Commands::Success(None) {
+                        if self.read_data(&mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None},) {
                             break 'retry_loop2;
                         } else {
                             retry -= 1;
@@ -215,7 +215,7 @@ impl ToString for Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
-        let _ = self.stream_arc.lock().unwrap().write_all(Commands::Disconnect(None).to_string().as_bytes());
+        let _ = self.stream_arc.lock().unwrap().write_all(Commands::Type(Disconnect {}).to_string().as_bytes());
         let _ = self.stream_arc.lock().unwrap().shutdown(Shutdown::Both);
     }
 }
