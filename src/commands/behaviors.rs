@@ -1,5 +1,16 @@
 use crate::server::utility;
 
+pub trait Runnables<T> {
+    fn execute(&self, stream: &TcpStream, input: T);
+}
+
+trait ParameterControl {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+}
+
+
 struct Request {}
 
 struct Info {}
@@ -30,15 +41,6 @@ struct Success {
 
 struct Error {}
 
-trait Runnables<T> {
-    fn execute(&self, stream: &TcpStream, input: T);
-}
-
-trait ParameterControl {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
-    }
-}
 
 
 impl Runnables<&Client> for Info {
@@ -127,14 +129,14 @@ impl Runnables<&Client> for Disconnect {
 impl Runnables<&Server> for Disconnect {
     fn execute(&self, stream: &TcpStream, _input: &Server) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 impl Runnables<&mut [u8; 1024]> for Disconnect {
     fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
@@ -149,36 +151,44 @@ impl Runnables<&Client> for ClientUpdate {
 impl Runnables<&Server> for ClientUpdate {
     fn execute(&self, stream: &TcpStream, _input: &Server) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 impl Runnables<&mut [u8; 1024]> for ClientUpdate {
     fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 
 impl Runnables<&Client> for ClientInfo {
     fn execute(&self, stream: &TcpStream, input: &Client) {
-        let uuid =
-        let _ = input.get_server_sender().send(ServerMessages::RequestInfo(uuid.clone(), input.get_stream_arc().clone()));
+        let map = self.params.unwrap();
+
+        let mut uuid = map.get("uuid");
+        if uuid.is_some() {
+            uuid = uuid.unwrap();
+            let _ = input.get_server_sender().send(ServerMessages::RequestInfo(uuid.clone(), input.get_stream_arc().clone()));
+        } else {
+            println!("Server: Invalid command sent");
+            utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+        }
     }
 }
 
 impl Runnables<&Server> for ClientInfo {
     fn execute(&self, stream: &TcpStream, _input: &Server) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 impl Runnables<&mut [u8; 1024]> for ClientInfo {
     fn run(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
@@ -190,14 +200,14 @@ impl Runnables<&mut [u8; 1024]> for ClientInfo {
 impl Runnables<&Client> for ClientRemove {
     fn execute(&self, stream: &TcpStream, _input: &Client) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 impl Runnables<&Server> for ClientRemove {
     fn execute(&self, stream: &TcpStream, _input: &Server) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
@@ -206,12 +216,12 @@ impl Runnables<&mut [u8; 1024]> for ClientRemove {
         let mut retry: u8 = 3;
         'retry_loop: loop {
             if retry < 1 {
-                utility::transmit_data(stream, self.error.to_string().as_str());
+                utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
                 break 'retry_loop;
             } else {                    
-                utility::transmit_data(stream, self.command.to_string().as_str());
+                utility::transmit_data(stream, Commands::ClientRemove(ClientRemove {params: self.params,}).to_string().as_str());
 
-                if utility::read_data(input).unwrap_or(Commands::Error(None)) == Commands::Success(None) {
+                if utility::read_data(input).unwrap_or(Commands::Error(Error {})) == Commands::Success(Success {params: None,}) {
                     break 'retry_loop;
                 } else {
                     retry -= 1;
@@ -225,14 +235,14 @@ impl Runnables<&mut [u8; 1024]> for ClientRemove {
 impl Runnables<&Client> for Client {
     fn execute(&self, stream: &TcpStream, _input: &Client) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
 impl Runnables<&Server> for Client {
     fn execute(&self, stream: &TcpStream, _input: &Server) {
         println!("Server: Invalid command sent");
-        utility::transmit_data(stream, Commands::Error(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
@@ -241,12 +251,12 @@ impl Runnables<&mut [u8; 1024]> for Client {
         let mut retry: u8 = 3;
         'retry_loop: loop {
             if retry < 1 {
-                utility::transmit_data(stream, self.error.to_string().as_str());
+                utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
                 break 'retry_loop;
             } else {
-                utility::transmit_data(stream, self.command.to_string().as_str());
+                utility::transmit_data(stream, Commands::Client(Client {params: self.params,}).to_string().as_str());
                 
-                if utility::read_data(input).unwrap_or(Commands::Error(None)) == Commands::Success(None) {
+                if utility::read_data(input).unwrap_or(Commands::Error(Error {})) == Commands::Success(Success {params: None}) {
                     break 'retry_loop;
                 } else {
                     retry -= 1;
