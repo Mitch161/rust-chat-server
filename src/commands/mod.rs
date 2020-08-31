@@ -36,49 +36,12 @@ pub enum CommandParseError {
 }
 
 
-impl Commands {
-    fn compare_params(&self, params: &Option<HashMap<String, String>>, other_params: &Option<HashMap<String, String>>) -> bool {
-        match (params, other_params) {
-            (None, Some(_other_params)) => false,
-            (Some(_params), None) => false,
-            (None, None) => true,
-            (Some(params), Some(other_params)) => {
-                let mut result = false;
-                
-                if params.len() == other_params.len() {
-                    for (key, value) in params.iter() {
-                        if let Some(other_value) = other_params.get(key) {
-                            if value != other_value {
-                                result = false;
-                                break;
-                            } else {
-                                result = true;
-                            }
-                        }
-                    }
-                }
-
-                result
-            },
-        }
-    }
-}
-
 impl PartialEq for Commands {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Commands::Request(arguments), Commands::Request(other_arguments)) => true,
-            (Commands::Info(arguments), Commands::Info(other_arguments)) => true,
-            (Commands::Connect(arguments), Commands::Connect(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
-            (Commands::Disconnect(arguments), Commands::Disconnect(other_arguments)) => true,
-            (Commands::ClientUpdate(arguments), Commands::ClientUpdate(other_arguments)) => true,
-            (Commands::ClientInfo(arguments), Commands::ClientInfo(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
-            (Commands::ClientRemove(arguments), Commands::ClientRemove(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
-            (Commands::Client(arguments), Commands::Client(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
-            (Commands::Success(arguments), Commands::Success(other_arguments)) => self.compare_params(&arguments.get_params(), &other_arguments.get_params()),
-            (Commands::Error(arguments), Commands::Error(other_arguments)) => true,
-            _ => false,
-        }
+        let Commands::Type(ref arguments_a) = self;
+        let Commands::Type(ref arguments_b) = other;
+
+        arguments_a == arguments_b
     }
 }
 
