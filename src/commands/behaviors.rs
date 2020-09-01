@@ -1,5 +1,6 @@
 use crate::server::utility;
 
+
 pub trait Runnables<T> {
     fn execute(&self, stream: &TcpStream, input: T);
 }
@@ -11,9 +12,15 @@ trait ParameterControl {
 }
 
 
+
+
 struct Request {}
 
 struct Info {}
+
+struct HeartBeat {
+    params: Option<HashMap<String, String>>,
+}
 
 struct Connect {
     params: Option<HashMap<String, String>>,
@@ -43,6 +50,29 @@ struct Error {}
 
 
 
+
+impl Runnables<&Client> for Request {
+    fn execute(&self, stream: &TcpStream, _input: &Client) {
+        println!("Server: Cannot execute Request command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+impl Runnables<&Server> for Request {
+    fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Cannot execute Request command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+impl Runnables<&Server> for Request {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Cannot execute Request command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+
 impl Runnables<&Client> for Info {
     fn execute(&self, stream: &TcpStream, _input: &Client) {
         println!("Server: Invalid command sent");
@@ -62,6 +92,28 @@ impl Runnables<&Server> for Info {
 }
 
 impl Runnables<&mut [u8; 1024]> for Info {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+
+impl Runnables<&Client> for HeartBeat {
+    fn execute(&self, stream: &TcpStream, input: &Client) {
+        *input.get_last_heartbeat().lock().unwrap() = Instant::now();
+        utility::transmit_data(Commands::Type(Success {params: None,}).to_string().as_str());
+    }
+}
+
+impl Runnables<&Server> for HeartBeat {
+    fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Invalid command sent");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+impl Runnables<&mut [u8; 1024]> for HeartBeat {
     fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
         println!("Server: Invalid command sent");
         utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
@@ -221,7 +273,7 @@ impl Runnables<&mut [u8; 1024]> for ClientRemove {
             } else {                    
                 utility::transmit_data(stream, Commands::ClientRemove(ClientRemove {params: self.params,}).to_string().as_str());
 
-                if utility::read_data(input).unwrap_or(Commands::Error(Error {})) == Commands::Success(Success {params: None,}) {
+                if utility::read_data(stream, input).unwrap_or(Commands::Error(Error {})) == Commands::Success(Success {params: None,}) {
                     break 'retry_loop;
                 } else {
                     retry -= 1;
@@ -256,7 +308,7 @@ impl Runnables<&mut [u8; 1024]> for Client {
             } else {
                 utility::transmit_data(stream, Commands::Client(Client {params: self.params,}).to_string().as_str());
                 
-                if utility::read_data(input).unwrap_or(Commands::Error(Error {})) == Commands::Success(Success {params: None}) {
+                if utility::read_data(stream, input).unwrap_or(Commands::Error(Error {})) == Commands::Success(Success {params: None}) {
                     break 'retry_loop;
                 } else {
                     retry -= 1;
@@ -266,69 +318,65 @@ impl Runnables<&mut [u8; 1024]> for Client {
     }
 }
 
-/*impl Runnables for Success {
-    fn execute() {
+
+impl Runnables<&Client> for Success {
+    fn execute(&self, stream: &TcpStream, _input: &Client) {
+        println!("Server: Cannot execute Success command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
 }
 
-impl Runnables for Error {
-    fn execute() {
+impl Runnables<&Server> for Success {
+    fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Cannot execute Success command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
     }
-}*/
+}
+
+impl Runnables<&mut [u8; 1024]> for Success {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Cannot execute Success command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+
+impl Runnables<&Client> for Error {
+    fn execute(&self, stream: &TcpStream, _input: &Client) {
+        println!("Server: Cannot execute Success command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+impl Runnables<&Server> for Error {
+    fn execute(&self, stream: &TcpStream, _input: &Server) {
+        println!("Server: Cannot execute Success command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+impl Runnables<&mut [u8; 1024]> for Error {
+    fn execute(&self, stream: &TcpStream, _input: &mut [u8; 1024]) {
+        println!("Server: Cannot execute Success command");
+        utility::transmit_data(stream, Commands::Error(Error {}).to_string().as_str());
+    }
+}
+
+
+
+
+
+
 
 impl PartialEq for Request {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
-            (None, Some(_other_params)) => false,
-            (Some(_params), None) => false,
-            (None, None) => true,
-            (Some(params), Some(other_params)) => {
-                let mut result = false;
-                
-                if params.len() == other_params.len() {
-                    for (key, value) in params.iter() {
-                        if let Some(other_value) = other_params.get(key) {
-                            if value != other_value {
-                                result = false;
-                                break;
-                            } else {
-                                result = true;
-                            }
-                        }
-                    }
-                }
-
-                result
-            },
-        }
+        true
     }
 }
 
 impl PartialEq for Info {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
-            (None, Some(_other_params)) => false,
-            (Some(_params), None) => false,
-            (None, None) => true,
-            (Some(params), Some(other_params)) => {
-                let mut result = false;
-                
-                if params.len() == other_params.len() {
-                    for (key, value) in params.iter() {
-                        if let Some(other_value) = other_params.get(key) {
-                            if value != other_value {
-                                result = false;
-                                break;
-                            } else {
-                                result = true;
-                            }
-                        }
-                    }
-                }
-
-                result
-            },
-        }
+        true
     }
 }
 
@@ -390,57 +438,13 @@ impl PartialEq for Connect {
 
 impl PartialEq for Disconnect {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
-            (None, Some(_other_params)) => false,
-            (Some(_params), None) => false,
-            (None, None) => true,
-            (Some(params), Some(other_params)) => {
-                let mut result = false;
-                
-                if params.len() == other_params.len() {
-                    for (key, value) in params.iter() {
-                        if let Some(other_value) = other_params.get(key) {
-                            if value != other_value {
-                                result = false;
-                                break;
-                            } else {
-                                result = true;
-                            }
-                        }
-                    }
-                }
-
-                result
-            },
-        }
+        true
     }
 }
 
 impl PartialEq for ClientUpdate {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
-            (None, Some(_other_params)) => false,
-            (Some(_params), None) => false,
-            (None, None) => true,
-            (Some(params), Some(other_params)) => {
-                let mut result = false;
-                
-                if params.len() == other_params.len() {
-                    for (key, value) in params.iter() {
-                        if let Some(other_value) = other_params.get(key) {
-                            if value != other_value {
-                                result = false;
-                                break;
-                            } else {
-                                result = true;
-                            }
-                        }
-                    }
-                }
-
-                result
-            },
-        }
+        true
     }
 }
 
@@ -558,75 +562,23 @@ impl PartialEq for Success {
 
 impl PartialEq for Error {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
-            (None, Some(_other_params)) => false,
-            (Some(_params), None) => false,
-            (None, None) => true,
-            (Some(params), Some(other_params)) => {
-                let mut result = false;
-                
-                if params.len() == other_params.len() {
-                    for (key, value) in params.iter() {
-                        if let Some(other_value) = other_params.get(key) {
-                            if value != other_value {
-                                result = false;
-                                break;
-                            } else {
-                                result = true;
-                            }
-                        }
-                    }
-                }
-
-                result
-            },
-        }
+        true
     }
 }
+
+
 
 
 
 impl ToString for Request {
     fn to_string(&self) -> std::string::String {
-        let mut out_string = String::from("!request:");
-
-        if self.params.is_some(`) {
-            let hash_map = self.params.borrow().as_ref().unwrap();
-            for (k, v) in hash_map.iter() {
-                out_string.push_str(" ");
-                out_string.push_str(k.as_str());
-                out_string.push_str(":");
-
-                if v.contains(":") {
-                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
-                } else {
-                    out_string.push_str(v.as_str());
-                }
-            }
-        }
-        out_string
+        String::from("!request:")
     }
 }
 
 impl ToString for Info {
     fn to_string(&self) -> std::string::String {
-        let mut out_string = String::from("!info:");
-
-        if self.params.is_some(`) {
-            let hash_map = self.params.borrow().as_ref().unwrap();
-            for (k, v) in hash_map.iter() {
-                out_string.push_str(" ");
-                out_string.push_str(k.as_str());
-                out_string.push_str(":");
-
-                if v.contains(":") {
-                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
-                } else {
-                    out_string.push_str(v.as_str());
-                }
-            }
-        }
-        out_string
+        String::from("!info:")
     }
 }
 
@@ -676,45 +628,13 @@ impl ToString for Connect {
 
 impl ToString for Disconnect {
     fn to_string(&self) -> std::string::String {
-        let mut out_string = String::from("!disconnect:");
-
-        if self.params.is_some(`) {
-            let hash_map = self.params.borrow().as_ref().unwrap();
-            for (k, v) in hash_map.iter() {
-                out_string.push_str(" ");
-                out_string.push_str(k.as_str());
-                out_string.push_str(":");
-
-                if v.contains(":") {
-                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
-                } else {
-                    out_string.push_str(v.as_str());
-                }
-            }
-        }
-        out_string
+        String::from("!disconnect:")
     }
 }
 
 impl ToString for ClientUpdate {
     fn to_string(&self) -> std::string::String {
-        let mut out_string = String::from("!clientUpdate:");
-
-        if self.params.is_some(`) {
-            let hash_map = self.params.borrow().as_ref().unwrap();
-            for (k, v) in hash_map.iter() {
-                out_string.push_str(" ");
-                out_string.push_str(k.as_str());
-                out_string.push_str(":");
-
-                if v.contains(":") {
-                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
-                } else {
-                    out_string.push_str(v.as_str());
-                }
-            }
-        }
-        out_string
+        String::from("!clientUpdate:")
     }
 }
 
@@ -808,23 +728,7 @@ impl ToString for Success {
 
 impl ToString for Error {
     fn to_string(&self) -> std::string::String {
-        let mut out_string = String::from("!error:");
-
-        if self.params.is_some(`) {
-            let hash_map = self.params.borrow().as_ref().unwrap();
-            for (k, v) in hash_map.iter() {
-                out_string.push_str(" ");
-                out_string.push_str(k.as_str());
-                out_string.push_str(":");
-
-                if v.contains(":") {
-                    out_string.push_str(format!("\"{}\"",v.as_str()).as_str())
-                } else {
-                    out_string.push_str(v.as_str());
-                }
-            }
-        }
-        out_string
+        let mut out_string = String::from("!error:")
     }
 }
 
