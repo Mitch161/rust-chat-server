@@ -11,3 +11,11 @@ pub fn transmit_data(stream: &mut TcpStream, data: &str) -> Result<(), Error> {
     stream.flush()?;
     Ok(())
 }
+
+pub fn read_data(mut stream: &TcpStream, buffer: &mut [u8; 1024]) -> Result<Commands, Error> {
+    stream.read(buffer)?;
+    let command = Commands::from(buffer);
+
+    Ok(command)
+}
+
