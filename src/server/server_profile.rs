@@ -3,6 +3,7 @@ extern crate rayon;
 
 use crate::{
     server::{
+        utility,
         client::client_profile::Client,
 
     },
@@ -113,14 +114,18 @@ impl<'z> Server<'z> {
                         ServerMessages::RequestUpdate(stream_arc) => {
                             for (_k, v) in self.connected_clients.lock().unwrap().iter() {
                                 let stream = stream_arc.lock().unwrap();
-                                self.transmit_data(&stream, v.to_string().as_str());
 
-                                if self.read_data(&stream, &mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None,}) {
+                                utility::transmit_data(&stream, v.to_string().as_str());
+                                //self.transmit_data(&stream, v.to_string().as_str());
+
+                                if utility::read_data(&stream, &mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None,}) {
+                                //if self.read_data(&stream, &mut buffer).unwrap_or(Commands::Type(Error {})) == Commands::Type(Success {params: None,}) {
                                     println!("Success Confirmed");
                                 } else {
                                     println!("no success read");
                                     let error = Commands::Type(Error {});
-                                    self.transmit_data(&stream, error.to_string().as_str());
+                                    utility::transmit_data(&stream, error.to_string().as_str());
+                                    //self.transmit_data(&stream, error.to_string().as_str());
                                 }
                             }
                         },
@@ -130,10 +135,12 @@ impl<'z> Server<'z> {
                             if let Some(client) = self.connected_clients.lock().unwrap().get(&uuid) {
                                 let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
                                 let command = Commands::Type(Success {params: Some(params),} );
-                                self.transmit_data(&stream, command.to_string().as_str());
+                                utility::transmit_data(&stream, command.to_string().as_str());
+                                //self.transmit_data(&stream, command.to_string().as_str());
                             } else {
                                 let command = Commands::Type(Success {params: None,} );
-                                self.transmit_data(&stream, command.to_string().as_str());
+                                utility::transmit_data(&stream, command.to_string().as_str());
+                                //self.transmit_data(&stream, command.to_string().as_str());
                             }
                         },
                         ServerMessages::Disconnect(uuid) => {
@@ -150,9 +157,11 @@ impl<'z> Server<'z> {
                     let _ = stream.set_nonblocking(false);
 
                     let request = Commands::Type(Request {params: None,});
-                    self.transmit_data(&stream, &request.to_string().as_str());
+                    utility::transmit_data(&stream, request.to_string().as_str());
+                    //self.transmit_data(&stream, &request.to_string().as_str());
 
-                    match self.read_data(&stream, &mut buffer) {
+                    match utility::read_data(&stream, &mut buffer) {
+                    //match self.read_data(&stream, &mut buffer) {
                         Ok(command) => {
                             println!("Server: new connection sent - {:?}", command);
                             let Commands::Type(command) = command;
@@ -180,6 +189,7 @@ impl<'z> Server<'z> {
         let _ = self.sender.send(ServerMessages::Shutdown);
     }
 
+    #[deprecated(since="01.09.20", note="Please use utility::transmit_data(...) instead.")]
     fn transmit_data(&self, mut stream: &TcpStream, data: &str){
         println!("Transmitting...");
         println!("data: {}", data);
@@ -192,7 +202,8 @@ impl<'z> Server<'z> {
         let _ = stream.write(data.to_string().as_bytes()).unwrap();
         stream.flush().unwrap();
     }
-
+    
+    #[deprecated(since="01.09.20", note="Please use utility::read_data(...) instead.")]
     fn read_data(&self, mut stream: &TcpStream, buffer: &mut [u8; 1024]) -> Result<Commands, Error> {
         stream.read(buffer)?;
         let command = Commands::from(buffer);
