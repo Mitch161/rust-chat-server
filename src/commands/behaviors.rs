@@ -1,19 +1,6 @@
 use crate::server::utility;
 
 
-pub trait Runnables<T> {
-    fn execute(&self, stream: &TcpStream, input: T);
-}
-
-trait ParameterControl {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
-    }
-}
-
-
-
-
 struct Request {}
 
 struct Info {}
@@ -47,6 +34,20 @@ struct Success {
 }
 
 struct Error {}
+
+
+
+
+
+pub trait Runnables<T> {
+    fn execute(&self, stream: &TcpStream, input: T);
+}
+
+trait ParameterControl {
+    fn get_params(&self) -> Option<HashMap<String, String>>;
+}
+
+
 
 
 
@@ -733,9 +734,39 @@ impl ToString for Error {
 }
 
 
-impl ParameterControl for HeartBeat {}
-impl ParameterControl for Connect {}
-impl ParameterControl for ClientInfo {}
-impl ParameterControl for ClientRemove {}
-impl ParameterControl for Client {}
-impl ParameterControl for Success {}
+impl ParameterControl for HeartBeat {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+}
+
+impl ParameterControl for Connect {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+
+}
+
+impl ParameterControl for ClientInfo {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+}
+
+impl ParameterControl for ClientRemove {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+}
+
+impl ParameterControl for Client {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+}
+
+impl ParameterControl for Success {
+    fn get_params(&self) -> Option<HashMap<String, String>> {
+        self.params
+    }
+}
