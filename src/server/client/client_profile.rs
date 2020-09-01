@@ -99,7 +99,8 @@ impl Client {
         }
         
         info!("{}: handling connection", self.uuid);
-        match self.read_data(&mut buffer) {
+        match utility::read_data(&self.stream_arc.lock().unwrap(), &mut buffer) {
+        //match self.read_data(&mut buffer) {
             Ok(command) => {
                 // match incomming commands
                 println!("command");
@@ -124,7 +125,7 @@ impl Client {
             _ => {},
         }
         println!("---Client Thread Exit---");
-    }    
+    }
 
     // move into a drop perhaps
     #[allow(dead_code)]
@@ -132,6 +133,7 @@ impl Client {
         self.stream_arc.lock().unwrap().shutdown(Shutdown::Both).expect("shutdown call failed");
     }
 
+    #[deprecated(since="01.09.20", note="Please use utility::transmit_data(...) instead.")]
     pub fn transmit_data(&self, data: &str) {
         println!("Transmitting data: {}", data);
 
@@ -147,6 +149,7 @@ impl Client {
         }
     }
 
+    #[deprecated(since="01.09.20", note="Please use utility::read_data(...) instead.")]
     fn read_data(&mut self, buffer: &mut [u8; 1024]) -> Result<Commands, Error> {
         self.stream_arc.lock().unwrap().read(buffer)?;
         let command = Commands::from(buffer);
