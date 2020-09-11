@@ -332,7 +332,7 @@ impl<T> Conversion<ClientProfile> for CommandsAPI<T> {
 
 impl<T> GenerateFrom<String, Server> for CommandsAPI<T> {
     fn generate_from(data: String) -> CommandsAPI<dyn Runnables<Server>> {
-        if let Ok(data) = <CommandsAPI as Conversion<Server>>::from_str(data.as_str()) {
+        if let Ok(data) = <CommandsAPI<T> as Conversion<Server>>::from_str(data.as_str()) {
             return data;
         }
         
@@ -348,7 +348,7 @@ impl<T> GenerateFrom<&mut [u8; 1024], Server> for CommandsAPI<T> {
     fn generate_from(data: &mut [u8; 1024]) -> CommandsAPI<dyn Runnables<Server>> {
         let incoming_message = String::from(String::from_utf8_lossy(data));
         data.zeroize();
-        CommandsAPI::generate_from(incoming_message)
+        <CommandsAPI<T> as GenerateFrom<String, Server>>::generate_from(incoming_message)
     }
 }
 
@@ -356,7 +356,7 @@ impl<T> GenerateFrom<&mut [u8; 1024], Server> for CommandsAPI<T> {
 
 impl<T> GenerateFrom<String, ClientProfile> for CommandsAPI<T> {
     fn generate_from(data: String) -> CommandsAPI<dyn Runnables<ClientProfile>> {
-        if let Ok(data) = <CommandsAPI as Conversion<ClientProfile>>::from_str(data.as_str()) {
+        if let Ok(data) = <CommandsAPI<T> as Conversion<ClientProfile>>::from_str(data.as_str()) {
             return data;
         }
 
@@ -372,7 +372,7 @@ impl<T> GenerateFrom<&mut [u8; 1024], ClientProfile> for CommandsAPI<T> {
     fn generate_from(data: &mut [u8; 1024]) -> CommandsAPI<dyn Runnables<ClientProfile>> {
         let incoming_message = String::from(String::from_utf8_lossy(data));
         data.zeroize();
-        CommandsAPI::generate_from(incoming_message)
+        <CommandsAPI<T> as GenerateFrom<String, ClientProfile>>::generate_from(incoming_message)
     }
 }
 
