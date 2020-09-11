@@ -147,13 +147,13 @@ trait Conversion<T> {
     }*/
 }
 
-trait GenerateFrom<T, U> {
+pub trait GenerateFrom<T, U> {
     fn generate_from(data: T) -> CommandsAPI<dyn Runnables<U>>;
 }
 
 
 
-struct CommandsAPI<T: ?Sized> {
+pub struct CommandsAPI<T: ?Sized> {
     command: Commands,
     executable: Box<T>,
 }
