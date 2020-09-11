@@ -181,7 +181,7 @@ impl Server {
                     match self.read_data(&stream, &mut buffer) {
                         Ok(command_api) => {
                             println!("Server: new connection sent - {:?}", command_api);
-                            command.executable.run(&stream, &server);
+                            command_api.executable.run(&stream, &server);
                         },
                         Err(_) => println!("ERROR: stream closed"),
                     }
