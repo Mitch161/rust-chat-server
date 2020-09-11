@@ -383,43 +383,43 @@ impl PartialEq<Connect> for HeartBeat {
     }
 }
 
-impl PartialEq<Disconnect> for Info {
+impl PartialEq<Disconnect> for HeartBeat {
     fn eq(&self, other: &Disconnect) -> bool {
         false
     }
 }
 
-impl PartialEq<ClientUpdate> for Info {
+impl PartialEq<ClientUpdate> for HeartBeat {
     fn eq(&self, other: &ClientUpdate) -> bool {
         false
     }
 }
 
-impl PartialEq<ClientInfo> for Info {
+impl PartialEq<ClientInfo> for HeartBeat {
     fn eq(&self, other: &ClientInfo) -> bool {
         false
     }
 }
 
-impl PartialEq<ClientRemove> for Info {
+impl PartialEq<ClientRemove> for HeartBeat {
     fn eq(&self, other: &ClientRemove) -> bool {
         false
     }
 }
 
-impl PartialEq<Client> for Info {
+impl PartialEq<Client> for HeartBeat {
     fn eq(&self, other: &Client) -> bool {
         false
     }
 }
 
-impl PartialEq<Success> for Info {
+impl PartialEq<Success> for HeartBeat {
     fn eq(&self, other: &Success) -> bool {
         false
     }
 }
 
-impl PartialEq<Error> for Info {
+impl PartialEq<Error> for HeartBeat {
     fn eq(&self, other: &Error) -> bool {
         false
     }
