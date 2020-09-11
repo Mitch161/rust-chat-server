@@ -245,67 +245,67 @@ impl<T> GenerateFrom<&mut [u8; 1024], Client> for CommandsAPI<T> {
  * PartialEq<T> implemented for all CommandsAPI types
  */
 impl<T> PartialEq<CommandsAPI<Request>> for CommandsAPI<T> {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, other: &CommandsAPI<Request>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Info>> for CommandsAPI<T> {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, other: &CommandsAPI<Info>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<HeartBeat>> for CommandsAPI<T> {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &CommandsAPI<HeartBeat>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Connect>> for CommandsAPI<T> {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, other: &CommandsAPI<Connect>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Disconnect>> for CommandsAPI<T> {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, other: &CommandsAPI<Disconnect>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<ClientUpdate>> for CommandsAPI<T> {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, other: &CommandsAPI<ClientUpdate>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<ClientInfo>> for CommandsAPI<T> {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, other: &CommandsAPI<ClientInfo>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<ClientRemove>> for CommandsAPI<T> {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, other: &CommandsAPI<ClientRemove>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Client>> for CommandsAPI<T> {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, other: &CommandsAPI<Client>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Success>> for CommandsAPI<T> {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, other: &CommandsAPI<Success>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Error>> for CommandsAPI<T> {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, other: &CommandsAPI<Error>) -> bool {
         (self.command == other.command && self.executable == other.executable)
     }
 }
