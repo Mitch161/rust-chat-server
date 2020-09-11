@@ -5,7 +5,7 @@ use std::{
     sync::Mutex,
     net::{Shutdown, TcpStream},
     io::prelude::*,
-    io::Error,
+    io::Error as IoError,
     //collections::HashMap,
     time::{Instant, Duration},
     io,
@@ -27,7 +27,12 @@ use crate::{
         //server_profile::Server,
         server_profile::ServerMessages,
     },
-    commands::Commands
+    commands::Commands,
+    commands::behaviors::{
+        Disconnect,
+        Success,
+        Error,
+    },
 
 };
 
@@ -71,11 +76,6 @@ impl Client {
     }
 
     #[allow(dead_code)]
-    pub fn get_sender(&self) -> &Sender<Commands> {
-        &self.sender
-    }
-    
-    #[allow(dead_code)]
     pub fn get_uuid(&self) -> String {
         self.uuid.clone()
     }
@@ -100,13 +100,11 @@ impl Client {
         }
         
         info!("{}: handling connection", self.uuid);
-        match utility::read_data(&self.stream_arc.lock().unwrap(), &mut buffer) {
-        //match self.read_data(&mut buffer) {
-            Ok(command) => {
+        match self.read_data(&mut buffer) {
+            Ok(command_api) => {
                 // match incomming commands
                 println!("command");
-                let Commands::Type(command) = command;
-                command.execute(&self.stream_arc, &self);
+                command_api.executable.run(&self.stream_arc, &self);
             },
             Err(_) => {
                 // no data was read
@@ -117,9 +115,39 @@ impl Client {
         // test to see if there is anything for the client to receive from its channel
         match self.receiver.try_recv() {
             /*command is on the channel*/ 
-            Ok(command) => {
-                let Commands::Type(command) = command;
-                command.execute(&self.stream_arc, &mut buffer);
+            Ok(Commands::ClientRemove(Some(params))) => {
+                let mut retry: u8 = 3;
+                'retry_loop: loop {
+                    if retry < 1 {
+                        utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                        break 'retry_loop;
+                    } else {                    
+                        utility::transmit_data(stream, Commands::ClientRemove(Some(params)).to_string().as_str());
+
+                        if self.read_data(&mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
+                            break 'retry_loop;
+                        } else {
+                            retry -= 1;
+                        }
+                    }
+                }
+            },
+            Ok(Commands::Client(Some(params))) => {
+                let mut retry: u8 = 3;
+                'retry_loop: loop {
+                    if retry < 1 {
+                        utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                        break 'retry_loop;
+                    } else {
+                        utility::transmit_data(stream, Commands::Client(Some(params)).to_string().as_str());
+                        
+                        if self.read_data(&mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
+                            break 'retry_loop;
+                        } else {
+                            retry -= 1;
+                        }
+                    }
+                }
             },
             /*no data available yet*/
             Err(TryRecvError::Empty) => {},
@@ -136,7 +164,7 @@ impl Client {
 
     #[deprecated(since="01.09.20", note="Please use utility::transmit_data(...) instead.")]
     pub fn transmit_data(&self, data: &str) {
-        println!("Transmitting data: {}", data);
+        /*println!("Transmitting data: {}", data);
 
         let error_result = self.stream_arc.lock().unwrap().write_all(data.to_string().as_bytes());
         if let Some(error) = error_result.err(){
@@ -147,17 +175,15 @@ impl Client {
                 },
                 _ => { },
             }
-        }
+        }*/
     }
 
-    #[deprecated(since="01.09.20", note="Please use utility::read_data(...) instead.")]
-    fn read_data(&mut self, buffer: &mut [u8; 1024]) -> Result<Commands, Error> {
+    fn read_data(&mut self, buffer: &mut [u8; 1024]) -> Result<CommandsAPI<dyn Runnables<Client>>, IoError> {
         self.stream_arc.lock().unwrap().read(buffer)?;
-        let command = Commands::from(buffer);
+        let command = <CommandsAPI as GenerateFrom<&mut [u8; 1024], Client>>::generate_from(buffer);
 
         Ok(command)
     }
-
 }
 
 impl ToString for Client {

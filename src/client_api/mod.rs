@@ -37,7 +37,7 @@ impl ClientApi {
         self.on_client_remove_handle = func;
     }
 
-    pub fn get_info(host: &str) -> Result<Commands, io::Error> {
+    /*pub fn get_info(host: &str) -> Result<Commands, io::Error> {
         let mut buffer: [u8; 1024] = [0; 1024];
         let addr = host.parse().unwrap();
         let mut stream = TcpStream::connect_timeout(&addr, Duration::from_millis(1000))?;
@@ -63,7 +63,7 @@ impl ClientApi {
                 Err(io::Error::new(io::ErrorKind::InvalidData, "the data was not expected"))
             }
         }
-    }
+    }*/
 
     pub fn get_clients(&self) {
 
