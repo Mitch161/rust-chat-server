@@ -358,7 +358,7 @@ impl PartialEq for Commands {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Commands::Request, Commands::Request) => true,
-            (Commands::Info, Commands::Info => true,
+            (Commands::Info, Commands::Info) => true,
             (Commands::HeartBeat(params), Commands::HeartBeat(other_params)) => self.compare_params(&params, &other_params),
             (Commands::Connect(params), Commands::Connect(other_params)) => self.compare_params(&params, &other_params),
             (Commands::Disconnect, Commands::Disconnect) => true,

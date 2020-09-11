@@ -28,6 +28,8 @@ use crate::{
         server_profile::ServerMessages,
     },
     commands::Commands,
+    commands::CommandsAPI,
+    commands::GenerateFrom,
     commands::behaviors::{
         Disconnect,
         Success,
@@ -119,10 +121,10 @@ impl Client {
                 let mut retry: u8 = 3;
                 'retry_loop: loop {
                     if retry < 1 {
-                        utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                        utility::transmit_data(self.stream_arc, Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {                    
-                        utility::transmit_data(stream, Commands::ClientRemove(Some(params)).to_string().as_str());
+                        utility::transmit_data(self.stream_arc, Commands::ClientRemove(Some(params)).to_string().as_str());
 
                         if self.read_data(&mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
                             break 'retry_loop;
@@ -136,10 +138,10 @@ impl Client {
                 let mut retry: u8 = 3;
                 'retry_loop: loop {
                     if retry < 1 {
-                        utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                        utility::transmit_data(self.stream_arc, Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {
-                        utility::transmit_data(stream, Commands::Client(Some(params)).to_string().as_str());
+                        utility::transmit_data(self.stream_arc, Commands::Client(Some(params)).to_string().as_str());
                         
                         if self.read_data(&mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
                             break 'retry_loop;
