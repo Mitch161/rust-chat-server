@@ -35,7 +35,7 @@ use std::net::TcpStream;
 //use dashmap::DashMap;
 
 trait Conversion<T> {
-    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<T>>, CommandParseError> {
+    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<T>>, CommandParseError>; /*{
         let regex = Regex::new(r###"(\?|!)([a-zA-z0-9]*):|([a-zA-z]*):([a-zA-Z0-9@\-\+\[\]{}_=/.]+|("(.*?)")+)"###).unwrap();
         let mut iter = regex.find_iter(data);
         let command_opt = iter.next();
@@ -144,8 +144,7 @@ trait Conversion<T> {
                 }
             },
         })
-    }
-
+    }*/
 }
 
 trait GenerateFrom<T, U> {
@@ -189,9 +188,147 @@ pub enum CommandParseError {
 
 
 
-impl<T> Conversion<Server> for CommandsAPI<T> {}
+impl<T> Conversion<Server> for CommandsAPI<T> {
+    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<Server>>, CommandParseError> {
+        let regex = Regex::new(r###"(\?|!)([a-zA-z0-9]*):|([a-zA-z]*):([a-zA-Z0-9@\-\+\[\]{}_=/.]+|("(.*?)")+)"###).unwrap();
+        let mut iter = regex.find_iter(data);
+        let command_opt = iter.next();
 
-impl<T> Conversion<Client> for CommandsAPI<T> {}
+        if command_opt.is_none() {
+            return Err(CommandParseError::NoString);
+        }
+        let command = command_opt.unwrap().as_str();
+
+
+        println!("command parsed to: {:?}", command);
+
+        let mut map: HashMap<String, String> = HashMap::new();
+
+        for i in iter {
+            let parameter = i.as_str().to_string();
+            let parts:Vec<&str> = parameter.split(":").collect();
+
+            map.insert(parts.index(0).to_string(), parts.index(1).to_string());
+        }
+
+        let params = if map.capacity() > 0 {Some(map)} else { None };
+
+        Ok(match command {
+            "!info:" if params.is_none() => {
+                CommandsAPI {
+                    command: Commands::Info,
+                    executable: Box::new(Info),
+                }
+            },
+
+            "!connect:" if params.is_some() => {
+                CommandsAPI {
+                    command: Commands::Connect(params),
+                    executable: Box::new(Connect {params: params.clone()}),
+                }
+            },
+            
+            "!success:" => {
+                CommandsAPI {
+                    command: Commands::Success(params),
+                    executable: Box::new(Success {params: params.clone()}),
+                }
+            },
+
+            "!error:" if params.is_none() => {
+                CommandsAPI {
+                    command: Commands::Error,
+                    executable: Box::new(Error),
+                }
+            },
+ 
+            _ => {
+                CommandsAPI {
+                    command: Commands::Error,
+                    executable: Box::new(Error),
+                }
+            },
+        })
+    }
+}
+
+impl<T> Conversion<ClientProfile> for CommandsAPI<T> {
+    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<ClientProfile>>, CommandParseError> {
+        let regex = Regex::new(r###"(\?|!)([a-zA-z0-9]*):|([a-zA-z]*):([a-zA-Z0-9@\-\+\[\]{}_=/.]+|("(.*?)")+)"###).unwrap();
+        let mut iter = regex.find_iter(data);
+        let command_opt = iter.next();
+
+        if command_opt.is_none() {
+            return Err(CommandParseError::NoString);
+        }
+        let command = command_opt.unwrap().as_str();
+
+
+        println!("command parsed to: {:?}", command);
+
+        let mut map: HashMap<String, String> = HashMap::new();
+
+        for i in iter {
+            let parameter = i.as_str().to_string();
+            let parts:Vec<&str> = parameter.split(":").collect();
+
+            map.insert(parts.index(0).to_string(), parts.index(1).to_string());
+        }
+
+        let params = if map.capacity() > 0 {Some(map)} else { None };
+
+        Ok(match command {
+            "!heartbeat:" => {
+                CommandsAPI {
+                    command: Commands::HeartBeat(params),
+                    executable: Box::new(HeartBeat {params: params.clone()}),
+                }
+            },
+
+            "!disconnect:" if params.is_none() => {
+                CommandsAPI {
+                    command: Commands::Disconnect,
+                    executable: Box::new(Disconnect),
+                }
+            },
+
+            "!clientUpdate:" if params.is_none() => {
+                CommandsAPI {
+                    command: Commands::ClientUpdate,
+                    executable: Box::new(ClientUpdate),
+                }
+            },
+
+            "!clientInfo:" if params.is_some() => {
+                CommandsAPI {
+                    command: Commands::ClientInfo(params),
+                    executable: Box::new(ClientInfo {params: params.clone()}),
+                }
+            },
+
+            "!success:" => {
+                CommandsAPI {
+                    command: Commands::Success(params),
+                    executable: Box::new(Success {params: params.clone()}),
+                }
+            },
+
+            "!error:" if params.is_none() => {
+                CommandsAPI {
+                    command: Commands::Error,
+                    executable: Box::new(Error),
+                }
+            },
+            
+            _ => {
+                CommandsAPI {
+                    command: Commands::Error,
+                    executable: Box::new(Error),
+                }
+            },
+        })
+    }
+}
 
 impl<T> GenerateFrom<String, Server> for CommandsAPI<T> {
     fn generate_from(data: String) -> CommandsAPI<dyn Runnables<Server>> {
@@ -217,9 +354,9 @@ impl<T> GenerateFrom<&mut [u8; 1024], Server> for CommandsAPI<T> {
 
 
 
-impl<T> GenerateFrom<String, Client> for CommandsAPI<T> {
-    fn generate_from(data: String) -> CommandsAPI<dyn Runnables<Client>> {
-        if let Ok(data) = <CommandsAPI as Conversion<Client>>::from_str(data.as_str()) {
+impl<T> GenerateFrom<String, ClientProfile> for CommandsAPI<T> {
+    fn generate_from(data: String) -> CommandsAPI<dyn Runnables<ClientProfile>> {
+        if let Ok(data) = <CommandsAPI as Conversion<ClientProfile>>::from_str(data.as_str()) {
             return data;
         }
 
@@ -231,8 +368,8 @@ impl<T> GenerateFrom<String, Client> for CommandsAPI<T> {
     }
 }
 
-impl<T> GenerateFrom<&mut [u8; 1024], Client> for CommandsAPI<T> {
-    fn generate_from(data: &mut [u8; 1024]) -> CommandsAPI<dyn Runnables<Client>> {
+impl<T> GenerateFrom<&mut [u8; 1024], ClientProfile> for CommandsAPI<T> {
+    fn generate_from(data: &mut [u8; 1024]) -> CommandsAPI<dyn Runnables<ClientProfile>> {
         let incoming_message = String::from(String::from_utf8_lossy(data));
         data.zeroize();
         CommandsAPI::generate_from(incoming_message)
