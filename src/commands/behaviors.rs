@@ -372,7 +372,7 @@ impl PartialEq<Request> for HeartBeat {
 }
 
 impl PartialEq<Info> for HeartBeat {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -464,7 +464,7 @@ impl PartialEq<Request> for Connect {
 }
 
 impl PartialEq<Info> for Connect {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -534,7 +534,7 @@ impl PartialEq<Request> for Disconnect {
 }
 
 impl PartialEq<Info> for Disconnect {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -604,7 +604,7 @@ impl PartialEq<Request> for ClientUpdate {
 }
 
 impl PartialEq<Info> for ClientUpdate {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -696,7 +696,7 @@ impl PartialEq<Request> for ClientInfo {
 }
 
 impl PartialEq<Info> for ClientInfo {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -788,7 +788,7 @@ impl PartialEq<Request> for ClientRemove {
 }
 
 impl PartialEq<Info> for ClientRemove {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -880,7 +880,7 @@ impl PartialEq<Request> for Client {
 }
 
 impl PartialEq<Info> for Client {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -972,7 +972,7 @@ impl PartialEq<Request> for Success {
 }
 
 impl PartialEq<Info> for Success {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
@@ -1042,7 +1042,7 @@ impl PartialEq<Request> for Error {
 }
 
 impl PartialEq<Info> for Error {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, other: &Info) -> bool {
         false
     }
 }
