@@ -383,76 +383,76 @@ impl<T> GenerateFrom<&mut [u8; 1024], ClientProfile> for CommandsAPI<T> {
  */
 impl<T> PartialEq<CommandsAPI<Request>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Request>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Info>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Info>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<HeartBeat>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<HeartBeat>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Connect>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Connect>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Disconnect>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Disconnect>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<ClientUpdate>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<ClientUpdate>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<ClientInfo>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<ClientInfo>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<ClientRemove>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<ClientRemove>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Client>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Client>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Success>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Success>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 impl<T> PartialEq<CommandsAPI<Error>> for CommandsAPI<T> {
     fn eq(&self, other: &CommandsAPI<Error>) -> bool {
-        (self.command == other.command && self.executable == other.executable)
+        self.command == other.command
     }
 }
 
 /*
  * ToString conversion for any commandAPI type
  */
-impl<T> ToString for CommandsAPI<T> {
+impl<T: ToString> ToString for CommandsAPI<T> {
     fn to_string(&self) -> std::string::String {
-        self.executable.to_string()
+        (*self.executable).to_string()
     }
 }
 
@@ -517,17 +517,17 @@ impl ToString for Commands {
         let mut out_string = String::new();
 
         let (command, parameters) = match self {
-            Commands::Request => { ("!request:", None) },
-            Commands::Info => { ("!info:", None) },
-            Commands::HeartBeat(arguments) => {("!heartbeat:", arguments)},
-            Commands::Connect(arguments) => { ("!connect:", arguments) },
-            Commands::Disconnect => { ("!disconnect:", None) },
-            Commands::ClientUpdate => { ("!clientUpdate:", None) },
-            Commands::ClientInfo(arguments) => { ("!clientInfo:", arguments) },
-            Commands::ClientRemove(arguments) => { ("!clientRemove", arguments) }
-            Commands::Client(arguments) => { ("!client:", arguments) },
-            Commands::Success(arguments) => { ("!success:", arguments) },
-            Commands::Error => { ("!error:", None) },
+            Commands::Request => ("!request:", None),
+            Commands::Info => ("!info:", None),
+            Commands::HeartBeat(arguments) => ("!heartbeat:", arguments),
+            Commands::Connect(arguments) => ("!connect:", arguments),
+            Commands::Disconnect => ("!disconnect:", None),
+            Commands::ClientUpdate => ("!clientUpdate:", None),
+            Commands::ClientInfo(arguments) => ("!clientInfo:", arguments),
+            Commands::ClientRemove(arguments) => ("!clientRemove", arguments),
+            Commands::Client(arguments) => ("!client:", arguments),
+            Commands::Success(arguments) => ("!success:", arguments),
+            Commands::Error => ("!error:", None),
         };
 
         out_string.push_str(command);
