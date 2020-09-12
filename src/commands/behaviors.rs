@@ -167,13 +167,16 @@ impl Runnables<ClientProfile> for ClientInfo {
     fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
         let map = self.params.unwrap();
 
-        let mut uuid = map.get("uuid");
-        if uuid.is_some() {
-            uuid = uuid.unwrap();
-            let _ = input.get_server_sender().send(ServerMessages::RequestInfo(uuid.clone(), input.get_stream_arc().clone()));
-        } else {
-            println!("Server: Invalid command sent");
-            utility::transmit_data(stream, Commands::Error.to_string().as_str());
+        let uuid = map.get("uuid");
+
+        match uuid {
+            Some(uuid) => {
+                let _ = input.get_server_sender().send(ServerMessages::RequestInfo(uuid.clone(), input.get_stream_arc()));
+            },
+            _ => {
+                println!("Server: Invalid command sent");
+                utility::transmit_data(stream, Commands::Error.to_string().as_str());
+            },
         }
     }
 }
