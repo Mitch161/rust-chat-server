@@ -143,7 +143,7 @@ impl Runnables<ClientProfile> for Info {}
 impl Runnables<ClientProfile> for HeartBeat {
     fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
         *input.get_last_heartbeat().lock().unwrap() = Instant::now();
-        utility::transmit_data(Commands::Success(None).to_string().as_str());
+        utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
     }
 }
 
