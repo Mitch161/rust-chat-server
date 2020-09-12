@@ -93,6 +93,10 @@ impl Server {
         self.author.to_string()
     }
 
+    pub fn get_sender(&self) -> Sender<ServerMessages> {
+        self.sender
+    }
+
     pub fn start(&self) -> Result<(), io::Error>{
         println!("server: starting server...");
 

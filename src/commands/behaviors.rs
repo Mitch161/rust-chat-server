@@ -54,7 +54,7 @@ pub struct Error;
 
 
 pub trait Runnables<T> {
-    fn execute(&self, stream: &TcpStream, _input: &T) {
+    fn execute(&self, stream: &mut TcpStream, _input: &T) {
         println!("Server: Invalid Command");
         utility::transmit_data(stream, Commands::Error.to_string().as_str());
     }
@@ -74,7 +74,7 @@ trait ParameterControl {
 impl Runnables<Server> for Request {}
 
 impl Runnables<Server> for Info {
-    fn execute(&self, stream: &TcpStream, input: &Server) {
+    fn execute(&self, stream: &mut TcpStream, input: &Server) {
         println!("Server: info requested");
 
         let params: HashMap<String, String> = [(String::from("name"), input.get_name()), (String::from("owner"), input.get_author())].iter().cloned().collect();
@@ -87,31 +87,31 @@ impl Runnables<Server> for Info {
 impl Runnables<Server> for HeartBeat {}
 
 impl Runnables<Server> for Connect {
-    fn execute(&self, stream: &TcpStream, input: &Server) {
+    fn execute(&self, stream: &mut TcpStream, input: &Server) {
         let map = self.params.unwrap();
 
-        let mut uuid = map.get("uuid");
-        let mut username = map.get("name");
-        let mut address = map.get("host");
+        let uuid = map.get("uuid");
+        let username = map.get("name");
+        let address = map.get("host");
 
-        if uuid.is_some() && username.is_some() && address.is_some() {
-            uuid = uuid.unwrap();
-            username = username.unwrap();
-            address = address.unwrap();
+        //if uuid.is_some() && username.is_some() && address.is_some() {
+        match (uuid, username, address) {
+            (Some(uuid), Some(username), Some(address)) => {
+                println!("{}", format!("Server: new Client connection: _addr = {:?}", address ));
+                
+                let client = ClientProfile::new(stream, input.get_sender(), uuid, username, address);
 
-            println!("{}", format!("Server: new Client connection: _addr = {}", address ));
-            
-            let client = Client::new(stream, input.get_sender().clone(), uuid, username, address);
+                input.add_client(uuid.as_str(), &client);
 
-            input.add_client(uuid.as_str(), &client);
+                let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
+                let new_client = Commands::Client(Some(params));
 
-            let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
-            let new_client = Commands::Client(Some(params));
-
-            input.update_all_clients(&new_client);
-        } else {
-            println!("Server: Invalid command sent");
-            utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                input.update_all_clients(&new_client);
+            },
+            _ => {
+                println!("Server: Invalid command sent");
+                utility::transmit_data(stream, Commands::Error.to_string().as_str());
+            },
         }
     }
 }
@@ -141,7 +141,7 @@ impl Runnables<ClientProfile> for Request {}
 impl Runnables<ClientProfile> for Info {}
 
 impl Runnables<ClientProfile> for HeartBeat {
-    fn execute(&self, stream: &TcpStream, input: &ClientProfile) {
+    fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
         *input.get_last_heartbeat().lock().unwrap() = Instant::now();
         utility::transmit_data(Commands::Success(None).to_string().as_str());
     }
@@ -150,21 +150,21 @@ impl Runnables<ClientProfile> for HeartBeat {
 impl Runnables<ClientProfile> for Connect {}
 
 impl Runnables<ClientProfile> for Disconnect {
-    fn execute(&self, _stream: &TcpStream, input: &ClientProfile) {
+    fn execute(&self, _stream: &mut TcpStream, input: &ClientProfile) {
         input.get_server_sender().send(ServerMessages::Disconnect(input.get_uuid())).expect("sending message to server failed");
         input.get_stream_arc().lock().unwrap().shutdown(Shutdown::Both).expect("shutdown call failed");
     }
 }
 
 impl Runnables<ClientProfile> for ClientUpdate {
-    fn execute(&self, stream: &TcpStream, input: &ClientProfile) {
+    fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
         utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
         let _ = input.get_server_sender().send(ServerMessages::RequestUpdate(input.get_stream_arc().clone()));
     }
 }
 
 impl Runnables<ClientProfile> for ClientInfo {
-    fn execute(&self, stream: &TcpStream, input: &ClientProfile) {
+    fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
         let map = self.params.unwrap();
 
         let mut uuid = map.get("uuid");
