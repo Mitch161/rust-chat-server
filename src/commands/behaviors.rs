@@ -11,7 +11,8 @@ use crate::{
 use std::{
     collections::HashMap,
     net::{Shutdown, TcpStream},
-    time::Instant
+    time::Instant,
+    borrow::Borrow;
 };
 
 
@@ -54,7 +55,7 @@ pub struct Error;
 
 
 pub trait Runnables<T> {
-    fn execute(&self, stream: &mut TcpStream, _input: &T) {
+    fn run(&self, stream: &mut TcpStream, _input: &T) {
         println!("Server: Invalid Command");
         utility::transmit_data(stream, Commands::Error.to_string().as_str());
     }
@@ -74,7 +75,7 @@ trait ParameterControl {
 impl Runnables<Server> for Request {}
 
 impl Runnables<Server> for Info {
-    fn execute(&self, stream: &mut TcpStream, input: &Server) {
+    fn run(&self, stream: &mut TcpStream, input: &Server) {
         println!("Server: info requested");
 
         let params: HashMap<String, String> = [(String::from("name"), input.get_name()), (String::from("owner"), input.get_author())].iter().cloned().collect();
@@ -87,7 +88,7 @@ impl Runnables<Server> for Info {
 impl Runnables<Server> for HeartBeat {}
 
 impl Runnables<Server> for Connect {
-    fn execute(&self, stream: &mut TcpStream, input: &Server) {
+    fn run(&self, stream: &mut TcpStream, input: &Server) {
         let map = self.params.unwrap();
 
         let uuid = map.get("uuid");
@@ -141,7 +142,7 @@ impl Runnables<ClientProfile> for Request {}
 impl Runnables<ClientProfile> for Info {}
 
 impl Runnables<ClientProfile> for HeartBeat {
-    fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
+    fn run(&self, stream: &mut TcpStream, input: &ClientProfile) {
         *input.get_last_heartbeat().lock().unwrap() = Instant::now();
         utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
     }
@@ -150,21 +151,21 @@ impl Runnables<ClientProfile> for HeartBeat {
 impl Runnables<ClientProfile> for Connect {}
 
 impl Runnables<ClientProfile> for Disconnect {
-    fn execute(&self, _stream: &mut TcpStream, input: &ClientProfile) {
+    fn run(&self, _stream: &mut TcpStream, input: &ClientProfile) {
         input.get_server_sender().send(ServerMessages::Disconnect(input.get_uuid())).expect("sending message to server failed");
         input.get_stream_arc().lock().unwrap().shutdown(Shutdown::Both).expect("shutdown call failed");
     }
 }
 
 impl Runnables<ClientProfile> for ClientUpdate {
-    fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
+    fn run(&self, stream: &mut TcpStream, input: &ClientProfile) {
         utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
         let _ = input.get_server_sender().send(ServerMessages::RequestUpdate(input.get_stream_arc().clone()));
     }
 }
 
 impl Runnables<ClientProfile> for ClientInfo {
-    fn execute(&self, stream: &mut TcpStream, input: &ClientProfile) {
+    fn run(&self, stream: &mut TcpStream, input: &ClientProfile) {
         let map = self.params.unwrap();
 
         let uuid = map.get("uuid");
