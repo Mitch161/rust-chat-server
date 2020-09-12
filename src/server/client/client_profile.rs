@@ -93,6 +93,18 @@ impl Client {
         self.address.clone()
     }
 
+    pub fn get_last_heartbeat(&self) -> Arc<Mutex<Instant>> {
+        self.last_heartbeat
+    }
+
+    pub fn get_server_sender(&self) -> &Sender<ServerMessages> {
+        &self.server_sender
+    }
+
+    pub fn get_stream_arc(&self) -> Arc<Mutex<TcpStream>> {
+        self.stream_arc
+    }
+
     // TODO: - add heartbeat timer.
     pub fn handle_connection(&mut self) {
         let mut buffer = [0; 1024];
