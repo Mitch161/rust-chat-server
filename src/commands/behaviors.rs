@@ -15,6 +15,7 @@ use std::{
     borrow::Borrow,
 };
 
+use downcast_rs::Downcast;
 
 pub struct Request;
 
@@ -54,17 +55,22 @@ pub struct Error;
 
 
 
-pub trait Runnables<T> {
+pub trait Runnables<T>: Downcast {
     fn run(&self, stream: &mut TcpStream, _input: &T) {
         println!("Server: Invalid Command");
         utility::transmit_data(stream, Commands::Error.to_string().as_str());
     }
+
+    fn to_string(&self) -> String {
+        self.to_string()
+    }
 }
+downcast_rs::impl_downcast!(Runnables<T>);
+
 
 trait ParameterControl {
     fn get_params(&self) -> Option<HashMap<String, String>>;
 }
-
 
 
 
