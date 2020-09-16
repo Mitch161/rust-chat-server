@@ -22,6 +22,7 @@ cursive = { version = "0.15.0", default-features = false, features = ["crossterm
 crossterm = "0.17.7"
 clap = "3.0.0-beta.1"
 log = "0.4"
+downcast-rs = "1.2.0"
 
 
 [profile.dev]
