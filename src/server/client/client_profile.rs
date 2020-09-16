@@ -139,7 +139,7 @@ impl Client {
                     } else {                    
                         utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params)).to_string().as_str());
 
-                        if self.read_data(&mut buffer).unwrap_or(Box::new(Error)) == Commands::Success(None) {
+                        if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             break 'retry_loop;
                         } else {
                             retry -= 1;
@@ -156,7 +156,7 @@ impl Client {
                     } else {
                         utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params)).to_string().as_str());
                         
-                        if self.read_data(&mut buffer).unwrap_or(Box::new(Error)) == Commands::Success(None) {
+                        if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             break 'retry_loop;
                         } else {
                             retry -= 1;

@@ -110,8 +110,8 @@ impl Server {
         let sender = self.sender.clone();
         let receiver = self.receiver.clone();
 
-        let server_arc = Arc::new(self);
-        let server = server_arc.clone();
+        //let server_arc = Arc::new(self);TODO
+        //let server = server_arc.clone();TODO
 
         // set up listener and buffer
         let listener = TcpListener::bind(self.get_address())?;
@@ -141,7 +141,7 @@ impl Server {
                                 utility::transmit_data(&mut stream, v.to_string().as_str());
                                 //self.transmit_data(&stream, v.to_string().as_str());
 
-                                if self.read_data(&stream, &mut buffer).unwrap_or(Boxed::new(Error)) == Commands::Success(None) {
+                                if let Some(success) = self.read_data(&stream, &mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                                     println!("Success Confirmed");
                                 } else {
                                     println!("no success read");
@@ -166,10 +166,10 @@ impl Server {
                             }
                         },
                         ServerMessages::Disconnect(uuid) => {
-                            server.remove_client(uuid.as_str());
+                            //server.remove_client(uuid.as_str());TODO
                             let params: HashMap<String, String> = [(String::from("uuid"), uuid)].iter().cloned().collect();
 
-                            server.update_all_clients(&Commands::ClientRemove(Some(params)));
+                            //server.update_all_clients(&Commands::ClientRemove(Some(params)));TODO
                         },
                     }
                 }
@@ -186,7 +186,7 @@ impl Server {
                     match self.read_data(&stream, &mut buffer) {
                         Ok(command) => {
                             println!("Server: new connection sent - {}", command.to_string());
-                            command.run(&mut stream, &server);
+                            //command.run(&mut stream, &server);TODO
                         },
                         Err(_) => println!("ERROR: stream closed"),
                     }
