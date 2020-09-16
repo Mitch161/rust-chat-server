@@ -1,6 +1,7 @@
 use crate::commands::Commands;
 use std::net::TcpStream;
 use std::io::Error;
+use std::io::Write;
 
 pub fn transmit_data(stream: &mut TcpStream, data: &str) -> Result<(), Error> {
     println!("Transmitting...");

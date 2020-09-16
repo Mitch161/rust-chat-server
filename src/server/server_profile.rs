@@ -13,6 +13,7 @@ use crate::{
     commands::behaviors::{
         Runnables,
         Success,
+        Error,
         ClientRemove,
         Request,
     },
@@ -24,7 +25,7 @@ use std::{
     collections::HashMap,
     io::prelude::*,
     time::Duration,
-    io::Error,
+    io::Error as IoError,
     thread,
     io
 };
@@ -97,7 +98,7 @@ impl Server {
         self.sender
     }
 
-    pub fn start(&self) -> Result<(), io::Error>{
+    pub fn start(&self) -> Result<(), IoError>{
         println!("server: starting server...");
 
         // MARK: - creating clones of the server property references
@@ -110,7 +111,7 @@ impl Server {
         let receiver = self.receiver.clone();
 
         let server_arc = Arc::new(self);
-        let server = server_arc.close();
+        let server = server_arc.clone();
 
         // set up listener and buffer
         let listener = TcpListener::bind(self.get_address())?;
@@ -137,15 +138,15 @@ impl Server {
                             for (_k, v) in connected_clients.lock().unwrap().iter() {
                                 let stream = stream_arc.lock().unwrap();
 
-                                utility::transmit_data(&stream, v.to_string().as_str());
+                                utility::transmit_data(&mut stream, v.to_string().as_str());
                                 //self.transmit_data(&stream, v.to_string().as_str());
 
-                                if self.read_data(&stream, &mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
+                                if self.read_data(&stream, &mut buffer).unwrap_or(Boxed::new(Error)) == Commands::Success(None) {
                                     println!("Success Confirmed");
                                 } else {
                                     println!("no success read");
                                     let error = Commands::Error;
-                                    utility::transmit_data(&stream, error.to_string().as_str());
+                                    utility::transmit_data(&mut stream, error.to_string().as_str());
                                     //self.transmit_data(&stream, error.to_string().as_str());
                                 }
                             }
@@ -156,11 +157,11 @@ impl Server {
                             if let Some(client) = connected_clients.lock().unwrap().get(&uuid) {
                                 let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
                                 let command = Commands::Success(Some(params));
-                                utility::transmit_data(&stream, command.to_string().as_str());
+                                utility::transmit_data(&mut stream, command.to_string().as_str());
                                 //self.transmit_data(&stream, command.to_string().as_str());
                             } else {
                                 let command = Commands::Success(None);
-                                utility::transmit_data(&stream, command.to_string().as_str());
+                                utility::transmit_data(&mut stream, command.to_string().as_str());
                                 //self.transmit_data(&stream, command.to_string().as_str());
                             }
                         },
@@ -179,13 +180,13 @@ impl Server {
                     let _ = stream.set_nonblocking(false);
 
                     let request = Commands::Request;
-                    utility::transmit_data(&stream, request.to_string().as_str());
+                    utility::transmit_data(&mut stream, request.to_string().as_str());
                     //self.transmit_data(&stream, &request.to_string().as_str());
 
                     match self.read_data(&stream, &mut buffer) {
-                        Ok(command_api) => {
-                            println!("Server: new connection sent - {:?}", command_api);
-                            command_api.executable.run(&stream, &server);
+                        Ok(command) => {
+                            println!("Server: new connection sent - {}", command.to_string());
+                            command.run(&mut stream, &server);
                         },
                         Err(_) => println!("ERROR: stream closed"),
                     }
@@ -223,7 +224,7 @@ impl Server {
         stream.flush().unwrap();*/
     }
     
-    fn read_data(&self, mut stream: &TcpStream, buffer: &mut [u8; 1024]) -> Result<CommandsAPI<dyn Runnables<Server>>, Error> {
+    fn read_data(&self, mut stream: &TcpStream, buffer: &mut [u8; 1024]) -> Result<Box<dyn Runnables<Server>>, IoError> {
         stream.read(buffer)?;
         let command = <CommandsAPI as GenerateFrom<&mut [u8; 1024], Server>>::generate_from(buffer);
 
@@ -236,7 +237,7 @@ impl Server {
 
     pub fn add_client(&self, uuid: &str, client: &Client) {
         let mut clients = self.connected_clients.lock().unwrap();
-        clients.insert(uuid.to_string(), client.clone());
+        clients.insert(uuid.to_string(), *client.clone());
     }
 
     pub fn remove_client(&self, uuid: &str) {

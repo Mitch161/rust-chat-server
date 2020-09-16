@@ -35,128 +35,15 @@ use std::net::TcpStream;
 //use dashmap::DashMap;
 
 trait Conversion<T> {
-    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<T>>, CommandParseError>; /*{
-        let regex = Regex::new(r###"(\?|!)([a-zA-z0-9]*):|([a-zA-z]*):([a-zA-Z0-9@\-\+\[\]{}_=/.]+|("(.*?)")+)"###).unwrap();
-        let mut iter = regex.find_iter(data);
-        let command_opt = iter.next();
-
-        if command_opt.is_none() {
-            return Err(CommandParseError::NoString);
-        }
-        let command = command_opt.unwrap().as_str();
-
-
-        println!("command parsed to: {:?}", command);
-
-        let mut map: HashMap<String, String> = HashMap::new();
-
-        for i in iter {
-            let parameter = i.as_str().to_string();
-            let parts:Vec<&str> = parameter.split(":").collect();
-
-            map.insert(parts.index(0).to_string(), parts.index(1).to_string());
-        }
-
-        let params = if map.capacity() > 0 {Some(map)} else { None };
-
-        Ok(match command {
-            "!request:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Request,
-                    executable: Box::new(Request),
-                }
-            },
-
-            "!info:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Info,
-                    executable: Box::new(Info),
-                }
-            },
-
-            "!heartbeat:" => {
-                CommandsAPI {
-                    command: Commands::HeartBeat(params),
-                    executable: Box::new(HeartBeat {params: params.clone()}),
-                }
-            },
-
-            "!connect:" if params.is_some() => {
-                CommandsAPI {
-                    command: Commands::Connect(params),
-                    executable: Box::new(Connect {params: params.clone()}),
-                }
-            },
-
-            "!disconnect:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Disconnect,
-                    executable: Box::new(Disconnect),
-                }
-            },
-
-            "!clientUpdate:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::ClientUpdate,
-                    executable: Box::new(ClientUpdate),
-                }
-            },
-
-            "!clientInfo:" if params.is_some() => {
-                CommandsAPI {
-                    command: Commands::ClientInfo(params),
-                    executable: Box::new(ClientInfo {params: params.clone()}),
-                }
-            },
-
-            "!client:" if params.is_some() => {
-                CommandsAPI {
-                    command: Commands::Client(params),
-                    executable: Box::new(Client {params: params.clone()}),
-                }
-            },
-
-            "!clientRemove:" if params.is_some() => {
-                CommandsAPI {
-                    command: Commands::ClientRemove(params),
-                    executable: Box::new(ClientRemove {params: params.clone()}),
-                }
-            },
-            
-            "!success:" => {
-                CommandsAPI {
-                    command: Commands::Success(params),
-                    executable: Box::new(Success {params: params.clone()}),
-                }
-            },
-
-            "!error:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Error,
-                    executable: Box::new(Error),
-                }
-            },
-            
-            _ => {
-                CommandsAPI {
-                    command: Commands::Error,
-                    executable: Box::new(Error),
-                }
-            },
-        })
-    }*/
+    fn from_str(data: &str) -> std::result::Result<Box<dyn Runnables<T>>, CommandParseError>;
 }
 
 pub trait GenerateFrom<T, U> {
-    fn generate_from(data: T) -> CommandsAPI<dyn Runnables<U>>;
+    fn generate_from(data: T) -> Box<dyn Runnables<U>>;
 }
 
 
-
-pub struct CommandsAPI<T: ?Sized> {
-    command: Commands,
-    executable: Box<T>,
-}
+pub struct CommandsAPI;
 
 
 #[derive(Clone, Debug)]
@@ -187,9 +74,8 @@ pub enum CommandParseError {
 
 
 
-
-impl<T> Conversion<Server> for CommandsAPI<T> {
-    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<Server>>, CommandParseError> {
+impl Conversion<Server> for CommandsAPI {
+    fn from_str(data: &str) -> std::result::Result<Box<dyn Runnables<Server>>, CommandParseError> {
         let regex = Regex::new(r###"(\?|!)([a-zA-z0-9]*):|([a-zA-z]*):([a-zA-Z0-9@\-\+\[\]{}_=/.]+|("(.*?)")+)"###).unwrap();
         let mut iter = regex.find_iter(data);
         let command_opt = iter.next();
@@ -214,46 +100,21 @@ impl<T> Conversion<Server> for CommandsAPI<T> {
         let params = if map.capacity() > 0 {Some(map)} else { None };
 
         Ok(match command {
-            "!info:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Info,
-                    executable: Box::new(Info),
-                }
-            },
+            "!info:" if params.is_none() => Box::new(Info),
 
-            "!connect:" if params.is_some() => {
-                CommandsAPI {
-                    command: Commands::Connect(params),
-                    executable: Box::new(Connect {params: params.clone()}),
-                }
-            },
+            "!connect:" if params.is_some() => Box::new(Connect {params: params.clone()}),
             
-            "!success:" => {
-                CommandsAPI {
-                    command: Commands::Success(params),
-                    executable: Box::new(Success {params: params.clone()}),
-                }
-            },
+            "!success:" => Box::new(Success {params: params.clone()}),
 
-            "!error:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Error,
-                    executable: Box::new(Error),
-                }
-            },
+            "!error:" if params.is_none() => Box::new(Error),
  
-            _ => {
-                CommandsAPI {
-                    command: Commands::Error,
-                    executable: Box::new(Error),
-                }
-            },
+            _ => Box::new(Error),
         })
     }
 }
 
-impl<T> Conversion<ClientProfile> for CommandsAPI<T> {
-    fn from_str(data: &str) -> std::result::Result<CommandsAPI<dyn Runnables<ClientProfile>>, CommandParseError> {
+impl Conversion<ClientProfile> for CommandsAPI {
+    fn from_str(data: &str) -> std::result::Result<Box<dyn Runnables<ClientProfile>>, CommandParseError> {
         let regex = Regex::new(r###"(\?|!)([a-zA-z0-9]*):|([a-zA-z]*):([a-zA-Z0-9@\-\+\[\]{}_=/.]+|("(.*?)")+)"###).unwrap();
         let mut iter = regex.find_iter(data);
         let command_opt = iter.next();
@@ -278,184 +139,62 @@ impl<T> Conversion<ClientProfile> for CommandsAPI<T> {
         let params = if map.capacity() > 0 {Some(map)} else { None };
 
         Ok(match command {
-            "!heartbeat:" => {
-                CommandsAPI {
-                    command: Commands::HeartBeat(params),
-                    executable: Box::new(HeartBeat {params: params.clone()}),
-                }
-            },
+            "!heartbeat:" => Box::new(HeartBeat {params: params.clone()}),
 
-            "!disconnect:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Disconnect,
-                    executable: Box::new(Disconnect),
-                }
-            },
+            "!disconnect:" if params.is_none() => Box::new(Disconnect),
 
-            "!clientUpdate:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::ClientUpdate,
-                    executable: Box::new(ClientUpdate),
-                }
-            },
+            "!clientUpdate:" if params.is_none() => Box::new(ClientUpdate),
 
-            "!clientInfo:" if params.is_some() => {
-                CommandsAPI {
-                    command: Commands::ClientInfo(params),
-                    executable: Box::new(ClientInfo {params: params.clone()}),
-                }
-            },
+            "!clientInfo:" if params.is_some() => Box::new(ClientInfo {params: params.clone()}),
 
-            "!success:" => {
-                CommandsAPI {
-                    command: Commands::Success(params),
-                    executable: Box::new(Success {params: params.clone()}),
-                }
-            },
+            "!success:" => Box::new(Success {params: params.clone()}),
 
-            "!error:" if params.is_none() => {
-                CommandsAPI {
-                    command: Commands::Error,
-                    executable: Box::new(Error),
-                }
-            },
+            "!error:" if params.is_none() => Box::new(Error),
             
-            _ => {
-                CommandsAPI {
-                    command: Commands::Error,
-                    executable: Box::new(Error),
-                }
-            },
+            _ => Box::new(Error),
         })
     }
 }
 
-impl<T> GenerateFrom<String, Server> for CommandsAPI<T> {
-    fn generate_from(data: String) -> CommandsAPI<dyn Runnables<Server>> {
-        if let Ok(data) = <CommandsAPI<T> as Conversion<Server>>::from_str(data.as_str()) {
+impl GenerateFrom<String, Server> for CommandsAPI {
+    fn generate_from(data: String) -> Box<dyn Runnables<Server>> {
+        if let Ok(data) = <CommandsAPI as Conversion<Server>>::from_str(data.as_str()) {
+            return data;
+        }
+
+        info!("Command: failed to parse with");
+        Box::new(Error)
+    }
+}
+
+impl GenerateFrom<&mut [u8; 1024], Server> for CommandsAPI {
+    fn generate_from(data: &mut [u8; 1024]) -> Box<dyn Runnables<Server>> {
+        let incoming_message = String::from(String::from_utf8_lossy(data));
+        data.zeroize();
+        <CommandsAPI as GenerateFrom<String, Server>>::generate_from(incoming_message)
+    }
+}
+
+
+
+impl GenerateFrom<String, ClientProfile> for CommandsAPI {
+    fn generate_from(data: String) -> Box<dyn Runnables<ClientProfile>> {
+        if let Ok(data) = <CommandsAPI as Conversion<ClientProfile>>::from_str(data.as_str()) {
             return data;
         }
         
         info!("Command: failed to parse with");
-        CommandsAPI {
-            command: Commands::Error,
-            executable: Box::new(Error),
-        }
+        Box::new(Error)
     }
 }
 
-impl<T> GenerateFrom<&mut [u8; 1024], Server> for CommandsAPI<T> {
-    fn generate_from(data: &mut [u8; 1024]) -> CommandsAPI<dyn Runnables<Server>> {
+impl GenerateFrom<&mut [u8; 1024], ClientProfile> for CommandsAPI {
+    fn generate_from(data: &mut [u8; 1024]) -> Box<dyn Runnables<ClientProfile>> {
         let incoming_message = String::from(String::from_utf8_lossy(data));
         data.zeroize();
-        <CommandsAPI<T> as GenerateFrom<String, Server>>::generate_from(incoming_message)
+        <CommandsAPI as GenerateFrom<String, ClientProfile>>::generate_from(incoming_message)
     }
 }
-
-
-
-impl<T> GenerateFrom<String, ClientProfile> for CommandsAPI<T> {
-    fn generate_from(data: String) -> CommandsAPI<dyn Runnables<ClientProfile>> {
-        if let Ok(data) = <CommandsAPI<T> as Conversion<ClientProfile>>::from_str(data.as_str()) {
-            return data;
-        }
-
-        info!("Command: failed to parse with");
-        CommandsAPI {
-            command: Commands::Error,
-            executable: Box::new(Error),
-        }
-    }
-}
-
-impl<T> GenerateFrom<&mut [u8; 1024], ClientProfile> for CommandsAPI<T> {
-    fn generate_from(data: &mut [u8; 1024]) -> CommandsAPI<dyn Runnables<ClientProfile>> {
-        let incoming_message = String::from(String::from_utf8_lossy(data));
-        data.zeroize();
-        <CommandsAPI<T> as GenerateFrom<String, ClientProfile>>::generate_from(incoming_message)
-    }
-}
-
-
-
-/*
- * PartialEq<T> implemented for all CommandsAPI types
- */
-impl<T> PartialEq<CommandsAPI<Request>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Request>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<Info>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Info>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<HeartBeat>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<HeartBeat>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<Connect>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Connect>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<Disconnect>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Disconnect>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<ClientUpdate>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<ClientUpdate>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<ClientInfo>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<ClientInfo>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<ClientRemove>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<ClientRemove>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<Client>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Client>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<Success>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Success>) -> bool {
-        self.command == other.command
-    }
-}
-
-impl<T> PartialEq<CommandsAPI<Error>> for CommandsAPI<T> {
-    fn eq(&self, other: &CommandsAPI<Error>) -> bool {
-        self.command == other.command
-    }
-}
-
-/*
- * ToString conversion for any commandAPI type
- */
-impl<T: ToString> ToString for CommandsAPI<T> {
-    fn to_string(&self) -> std::string::String {
-        (*self.executable).to_string()
-    }
-}
-
 
 
 
@@ -491,42 +230,22 @@ impl Commands {
     }
 }
 
-impl PartialEq for Commands {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Commands::Request, Commands::Request) => true,
-            (Commands::Info, Commands::Info) => true,
-            (Commands::HeartBeat(params), Commands::HeartBeat(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Connect(params), Commands::Connect(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Disconnect, Commands::Disconnect) => true,
-            (Commands::ClientUpdate, Commands::ClientUpdate) => true,
-            (Commands::ClientInfo(params), Commands::ClientInfo(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::ClientRemove(params), Commands::ClientRemove(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Client(params), Commands::Client(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Success(params), Commands::Success(other_params)) => self.compare_params(&params, &other_params),
-            (Commands::Error, Commands::Error) => true,
-            _ => false,
-        }
-    }
-}
-
-
 impl ToString for Commands {
 
     fn to_string(&self) -> std::string::String {
         let mut out_string = String::new();
 
-        let (command, parameters) = match self {
+        let (command, parameters): (&str, Option<HashMap<String, String>>) = match self {
             Commands::Request => ("!request:", None),
             Commands::Info => ("!info:", None),
-            Commands::HeartBeat(arguments) => ("!heartbeat:", arguments),
-            Commands::Connect(arguments) => ("!connect:", arguments),
+            Commands::HeartBeat(arguments) => ("!heartbeat:", *arguments),
+            Commands::Connect(arguments) => ("!connect:", *arguments),
             Commands::Disconnect => ("!disconnect:", None),
             Commands::ClientUpdate => ("!clientUpdate:", None),
-            Commands::ClientInfo(arguments) => ("!clientInfo:", arguments),
-            Commands::ClientRemove(arguments) => ("!clientRemove", arguments),
-            Commands::Client(arguments) => ("!client:", arguments),
-            Commands::Success(arguments) => ("!success:", arguments),
+            Commands::ClientInfo(arguments) => ("!clientInfo:", *arguments),
+            Commands::ClientRemove(arguments) => ("!clientRemove", *arguments),
+            Commands::Client(arguments) => ("!client:", *arguments),
+            Commands::Success(arguments) => ("!success:", *arguments),
             Commands::Error => ("!error:", None),
         };
 
@@ -618,8 +337,134 @@ impl From<&mut [u8; 1024]> for Commands {
     }
 }
 
+impl PartialEq for Commands {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Commands::Request, Commands::Request) => true,
+            (Commands::Info, Commands::Info) => true,
+            (Commands::HeartBeat(params), Commands::HeartBeat(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::Connect(params), Commands::Connect(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::Disconnect, Commands::Disconnect) => true,
+            (Commands::ClientUpdate, Commands::ClientUpdate) => true,
+            (Commands::ClientInfo(params), Commands::ClientInfo(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::ClientRemove(params), Commands::ClientRemove(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::Client(params), Commands::Client(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::Success(params), Commands::Success(other_params)) => self.compare_params(&params, &other_params),
+            (Commands::Error, Commands::Error) => true,
+            _ => false,
+        }
+    }
+}
 
+impl PartialEq<Request> for Commands {
+    fn eq(&self, other: &Request) -> bool {
+        if let Commands::Request = self {
+            return true;
+        }
 
+        false
+    }
+}
+
+impl PartialEq<Info> for Commands {
+    fn eq(&self, other: &Info) -> bool {
+        if let Commands::Info = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<HeartBeat> for Commands {
+    fn eq(&self, other: &HeartBeat) -> bool {
+        if let Commands::HeartBeat(_) = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<Connect> for Commands {
+    fn eq(&self, other: &Connect) -> bool {
+        if let Commands::Connect(_) = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<Disconnect> for Commands {
+    fn eq(&self, other: &Disconnect) -> bool {
+        if let Commands::Disconnect = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<ClientUpdate> for Commands {
+    fn eq(&self, other: &ClientUpdate) -> bool {
+        if let Commands::ClientUpdate = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<ClientInfo> for Commands {
+    fn eq(&self, other: &ClientInfo) -> bool {
+        if let Commands::ClientInfo(_) = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<ClientRemove> for Commands {
+    fn eq(&self, other: &ClientRemove) -> bool {
+        if let Commands::ClientRemove(_) = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<Client> for Commands {
+    fn eq(&self, other: &Client) -> bool {
+        if let Commands::Client(_) = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<Success> for Commands {
+    fn eq(&self, other: &Success) -> bool {
+        if let Commands::Success(_) = self {
+            return true;
+        }
+
+        false
+    }
+}
+
+impl PartialEq<Error> for Commands {
+    fn eq(&self, other: &Error) -> bool {
+        if let Commands::Error = self {
+            return true;
+        }
+
+        false
+    }
+}
 
 
 // TODO: check if unit tests still work

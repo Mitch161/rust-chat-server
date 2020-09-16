@@ -12,7 +12,7 @@ use std::{
     collections::HashMap,
     net::{Shutdown, TcpStream},
     time::Instant,
-    borrow::Borrow;
+    borrow::Borrow,
 };
 
 
@@ -266,6 +266,15 @@ impl PartialEq<Error> for Request {
     }
 }
 
+impl PartialEq<Commands> for Request {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Request = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 
 /*
@@ -337,6 +346,15 @@ impl PartialEq<Error> for Info {
     }
 }
 
+impl PartialEq<Commands> for Info {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Info = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for HeartBeat
@@ -429,6 +447,15 @@ impl PartialEq<Error> for HeartBeat {
     }
 }
 
+impl PartialEq<Commands> for HeartBeat {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::HeartBeat(_) = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for Connect
@@ -521,6 +548,15 @@ impl PartialEq<Error> for Connect {
     }
 }
 
+impl PartialEq<Commands> for Connect {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Connect(_) = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for Disconnect
@@ -591,6 +627,15 @@ impl PartialEq<Error> for Disconnect {
     }
 }
 
+impl PartialEq<Commands> for Disconnect {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Disconnect = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for ClientUpdate
@@ -661,6 +706,15 @@ impl PartialEq<Error> for ClientUpdate {
     }
 }
 
+impl PartialEq<Commands> for ClientUpdate {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::ClientUpdate = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for ClientInfo
@@ -753,6 +807,15 @@ impl PartialEq<Error> for ClientInfo {
     }
 }
 
+impl PartialEq<Commands> for ClientInfo {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::ClientInfo(_) = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for ClientRemove
@@ -845,6 +908,15 @@ impl PartialEq<Error> for ClientRemove {
     }
 }
 
+impl PartialEq<Commands> for ClientRemove {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::ClientRemove(_) = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for Client
@@ -937,6 +1009,15 @@ impl PartialEq<Error> for Client {
     }
 }
 
+impl PartialEq<Commands> for Client {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Client(_) = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for Success
@@ -1029,6 +1110,15 @@ impl PartialEq<Error> for Success {
     }
 }
 
+impl PartialEq<Commands> for Success {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Success(_) = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * PartialEq<T> implemented for Error
@@ -1099,6 +1189,15 @@ impl PartialEq<Success> for Error {
     }
 }
 
+impl PartialEq<Commands> for Error {
+    fn eq(&self, other: &Commands) -> bool {
+        if let Commands::Error = other {
+            return true;
+        }
+
+        false
+    }
+}
 
 /*
  * ToString implemented for all command types

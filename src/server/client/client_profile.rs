@@ -59,12 +59,12 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(stream: TcpStream, server_sender: Sender<ServerMessages>, uuid: &str, username: &str, address: &str) -> Self {
+    pub fn new(stream: &TcpStream, server_sender: Sender<ServerMessages>, uuid: &str, username: &str, address: &str) -> Self {
         let (sender, receiver): (Sender<Commands>, Receiver<Commands>) = unbounded();
         stream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
 
         Client {
-            stream_arc: Arc::new(Mutex::new(stream)),
+            stream_arc: Arc::new(Mutex::new(*stream)),
             uuid: uuid.to_string(),
             username: username.to_string(),
             address: address.to_string(),
@@ -116,10 +116,10 @@ impl Client {
         
         info!("{}: handling connection", self.uuid);
         match self.read_data(&mut buffer) {
-            Ok(command_api) => {
+            Ok(command) => {
                 // match incomming commands
                 println!("command");
-                command_api.executable.run(&self.stream_arc, &self);
+                command.run(&mut self.stream_arc.lock().unwrap(), &self);
             },
             Err(_) => {
                 // no data was read
@@ -134,12 +134,12 @@ impl Client {
                 let mut retry: u8 = 3;
                 'retry_loop: loop {
                     if retry < 1 {
-                        utility::transmit_data(self.stream_arc, Commands::Error.to_string().as_str());
+                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {                    
-                        utility::transmit_data(self.stream_arc, Commands::ClientRemove(Some(params)).to_string().as_str());
+                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params)).to_string().as_str());
 
-                        if self.read_data(&mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
+                        if self.read_data(&mut buffer).unwrap_or(Box::new(Error)) == Commands::Success(None) {
                             break 'retry_loop;
                         } else {
                             retry -= 1;
@@ -151,12 +151,12 @@ impl Client {
                 let mut retry: u8 = 3;
                 'retry_loop: loop {
                     if retry < 1 {
-                        utility::transmit_data(self.stream_arc, Commands::Error.to_string().as_str());
+                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {
-                        utility::transmit_data(self.stream_arc, Commands::Client(Some(params)).to_string().as_str());
+                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params)).to_string().as_str());
                         
-                        if self.read_data(&mut buffer).unwrap_or(Commands::Error) == Commands::Success(None) {
+                        if self.read_data(&mut buffer).unwrap_or(Box::new(Error)) == Commands::Success(None) {
                             break 'retry_loop;
                         } else {
                             retry -= 1;
@@ -193,7 +193,7 @@ impl Client {
         }*/
     }
 
-    fn read_data(&mut self, buffer: &mut [u8; 1024]) -> Result<CommandsAPI<dyn Runnables<Client>>, IoError> {
+    fn read_data(&mut self, buffer: &mut [u8; 1024]) -> Result<Box<dyn Runnables<Client>>, IoError> {
         self.stream_arc.lock().unwrap().read(buffer)?;
         let command = <CommandsAPI as GenerateFrom<&mut [u8; 1024], Client>>::generate_from(buffer);
 
@@ -207,7 +207,7 @@ impl ToString for Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
-        let _ = self.stream_arc.lock().unwrap().write_all(Commands::Type(Disconnect {}).to_string().as_bytes());
+        let _ = self.stream_arc.lock().unwrap().write_all(Commands::Disconnect.to_string().as_bytes());
         let _ = self.stream_arc.lock().unwrap().shutdown(Shutdown::Both);
     }
 }
