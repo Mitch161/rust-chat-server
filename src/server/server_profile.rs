@@ -53,9 +53,9 @@ pub enum ClientMessage {
 // MARK: - server struct
 #[derive(Debug)]
 pub struct Server {
-    name: Arc<String>,
-    address: Arc<String>,
-    author: Arc<String>,
+    name: String,
+    address: String,
+    author: String,
 
     connected_clients: Arc<Mutex<HashMap<String, Client>>>,
 
@@ -71,9 +71,9 @@ impl Server {
         let (sender, receiver) = unbounded();
 
         Self {
-            name: Arc::new(name.to_string()),
-            address: Arc::new(address.to_string()),
-            author: Arc::new(author.to_string()),
+            name: name.to_string(),
+            address: address.to_string(),
+            author: author.to_string(),
             connected_clients: Arc::new(Mutex::new(HashMap::new())),
             thread_pool: ThreadPool::new(16), 
 
@@ -98,111 +98,82 @@ impl Server {
         self.sender
     }
 
-    pub fn start(&self) -> Result<(), IoError>{
-        println!("server: starting server...");
+    pub fn start(&self, buffer: &mut [u8; 1024], listener: &TcpListener) -> bool {
+        std::thread::sleep(Duration::from_millis(100));
 
-        // MARK: - creating clones of the server property references
-        let name = self.name.clone();
-        #[allow(dead_code)]
-        let address = self.address.clone();
-        let author = self.author.clone(); 
-        let connected_clients = self.connected_clients.clone();
-        let sender = self.sender.clone();
-        let receiver = self.receiver.clone();
+        // get messages from the servers channel.
+        println!("server: getting messages");
+        for i in self.receiver.try_iter() {
+            match i {
+                ServerMessages::Shutdown => {
+                    // TODO: implement disconnecting all clients and shutting down the server
+                    println!("server: shutting down...");
 
-        //let server_arc = Arc::new(self);TODO
-        //let server = server_arc.clone();TODO
+                    return false;
+                },
+                ServerMessages::RequestUpdate(stream_arc) => {
+                    for (_k, v) in self.connected_clients.lock().unwrap().iter() {
+                        let stream = stream_arc.lock().unwrap();
 
-        // set up listener and buffer
-        let listener = TcpListener::bind(self.get_address())?;
-        listener.set_nonblocking(true)?;
+                        utility::transmit_data(&mut stream, v.to_string().as_str());
+                        //self.transmit_data(&stream, v.to_string().as_str());
 
-        println!("server: spawning threads");
-        let _ = thread::Builder::new().name("Server Thread".to_string()).spawn(move || {
-            let mut buffer = [0; 1024];
-            
-            'outer: loop {
-                std::thread::sleep(Duration::from_millis(100));
-
-                // get messages from the servers channel.
-                println!("server: getting messages");
-                for i in receiver.try_iter() {
-                    match i {
-                        ServerMessages::Shutdown => {
-                            // TODO: implement disconnecting all clients and shutting down the server
-                            println!("server: shutting down...");
-
-                            break 'outer;
-                        },
-                        ServerMessages::RequestUpdate(stream_arc) => {
-                            for (_k, v) in connected_clients.lock().unwrap().iter() {
-                                let stream = stream_arc.lock().unwrap();
-
-                                utility::transmit_data(&mut stream, v.to_string().as_str());
-                                //self.transmit_data(&stream, v.to_string().as_str());
-
-                                if let Some(success) = self.read_data(&stream, &mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
-                                    println!("Success Confirmed");
-                                } else {
-                                    println!("no success read");
-                                    let error = Commands::Error;
-                                    utility::transmit_data(&mut stream, error.to_string().as_str());
-                                    //self.transmit_data(&stream, error.to_string().as_str());
-                                }
-                            }
-                        },
-                        ServerMessages::RequestInfo(uuid, stream_arc) => {
-                            let stream = stream_arc.lock().unwrap();
-                            
-                            if let Some(client) = connected_clients.lock().unwrap().get(&uuid) {
-                                let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
-                                let command = Commands::Success(Some(params));
-                                utility::transmit_data(&mut stream, command.to_string().as_str());
-                                //self.transmit_data(&stream, command.to_string().as_str());
-                            } else {
-                                let command = Commands::Success(None);
-                                utility::transmit_data(&mut stream, command.to_string().as_str());
-                                //self.transmit_data(&stream, command.to_string().as_str());
-                            }
-                        },
-                        ServerMessages::Disconnect(uuid) => {
-                            //server.remove_client(uuid.as_str());TODO
-                            let params: HashMap<String, String> = [(String::from("uuid"), uuid)].iter().cloned().collect();
-
-                            //server.update_all_clients(&Commands::ClientRemove(Some(params)));TODO
-                        },
+                        if let Some(success) = self.read_data(&stream, &mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
+                            println!("Success Confirmed");
+                        } else {
+                            println!("no success read");
+                            let error = Commands::Error;
+                            utility::transmit_data(&mut stream, error.to_string().as_str());
+                        }
                     }
-                }
-
-                println!("server: checking for new connections");
-                if let Ok((stream, _addr)) = listener.accept() {
-                    stream.set_read_timeout(Some(Duration::from_millis(1000))).unwrap();
-                    let _ = stream.set_nonblocking(false);
-
-                    let request = Commands::Request;
-                    utility::transmit_data(&mut stream, request.to_string().as_str());
-                    //self.transmit_data(&stream, &request.to_string().as_str());
-
-                    match self.read_data(&stream, &mut buffer) {
-                        Ok(command) => {
-                            println!("Server: new connection sent - {}", command.to_string());
-                            //command.run(&mut stream, &server);TODO
-                        },
-                        Err(_) => println!("ERROR: stream closed"),
+                },
+                ServerMessages::RequestInfo(uuid, stream_arc) => {
+                    let stream = stream_arc.lock().unwrap();
+                    
+                    if let Some(client) = self.connected_clients.lock().unwrap().get(&uuid) {
+                        let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
+                        let command = Commands::Success(Some(params));
+                        utility::transmit_data(&mut stream, command.to_string().as_str());
+                    } else {
+                        let command = Commands::Success(None);
+                        utility::transmit_data(&mut stream, command.to_string().as_str());
                     }
-                }
-                // TODO: end -
+                },
+                ServerMessages::Disconnect(uuid) => {
+                    self.remove_client(uuid.as_str());
+                    let params: HashMap<String, String> = [(String::from("uuid"), uuid)].iter().cloned().collect();
 
-                // handle each client for messages
-                println!("server: handing control to clients");
-                for (_k, client) in connected_clients.lock().unwrap().iter_mut() {
-                    client.handle_connection();
-                }
+                    self.update_all_clients(&Commands::ClientRemove(Some(params)));
+                },
             }
-            println!("server: stopped");
-        });
-        println!("server: started");
-        Ok(())
+        }
+
+        println!("server: checking for new connections");
+        if let Ok((stream, _addr)) = listener.accept() {
+            stream.set_read_timeout(Some(Duration::from_millis(1000))).unwrap();
+            let _ = stream.set_nonblocking(false);
+
+            let request = Commands::Request;
+            utility::transmit_data(&mut stream, request.to_string().as_str());
+            //self.transmit_data(&stream, &request.to_string().as_str());
+
+            match self.read_data(&stream, &mut buffer) {
+                Ok(command) => {
+                    println!("Server: new connection sent - {}", command.to_string());
+                    //command.run(&mut stream, &server);TODO
+                },
+                Err(_) => println!("ERROR: stream closed"),
+            }
+        }
+        // TODO: end -
+
+        // handle each client for messages
+        println!("server: handing control to clients");
+        for (_k, client) in self.connected_clients.lock().unwrap().iter_mut() {
+            client.handle_connection();
+        }
+
+        true
     }
 
     pub fn stop(&self) {
