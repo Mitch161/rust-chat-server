@@ -21,7 +21,7 @@ use crossterm::ErrorKind;
 use log::info;
 use clap::{App, Arg};
 
-use crate::server::server_profile::Server;
+use crate::server::ServerModel;
 
 fn main() -> Result<(), ErrorKind> {
     let args = App::new("--rust chat server--")
@@ -35,10 +35,14 @@ fn main() -> Result<(), ErrorKind> {
         .get_matches();
 
     if args.is_present("graphical") {
-        let server = Server::new("Server-01", "0.0.0.0:6000", "noreply@email.com");
-        let server_arc = Arc::new(server);
-        let s1 = server_arc.clone();
-        let s2 = s1.clone();
+        //let server = Server::new("Server-01", "0.0.0.0:6000", "noreply@email.com");
+        let server_model = ServerModel::new("Server-01", "0.0.0.0:6000", "noreply@email.com");
+        //let server_arc = Arc::new(server);
+        let server_model_arc = Arc::new(server_model);
+        //let s1 = server_arc.clone();
+        let sm1 = server_model_arc.clone();
+        //let s2 = s1.clone();
+        let sm2 = server_model_arc.clone();
 
         cursive::logger::init();
 
@@ -60,8 +64,8 @@ fn main() -> Result<(), ErrorKind> {
                              .leaf("quit", |s| s.quit()))
             .add_subtree("File",
                          MenuTree::new()
-                             .leaf("Start", move |_s| {let _ = s1.start();})
-                             .leaf("Stop", move |_s| {let _ = s2.stop();})
+                             .leaf("Start", move |_s| {let _ = sm1.start();})
+                             .leaf("Stop", move |_s| {let _ = sm2.stop();})
                              .delimiter()
                              .leaf("Debug", |s| {s.toggle_debug_console();}));
         info!("Main: entering loop");
@@ -69,8 +73,8 @@ fn main() -> Result<(), ErrorKind> {
         display.run();
         Ok(())
     } else {
-        let server = Server::new("Server-01", "0.0.0.0:6000", "noreply@email.com");
-        server.start()?;
+        let server_model = ServerModel::new("Server-01", "0.0.0.0:6000", "noreply@email.com");
+        server_model.start()?;
         loop {std::thread::sleep(Duration::from_secs(1));}
     }
 }
