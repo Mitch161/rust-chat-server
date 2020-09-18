@@ -29,7 +29,7 @@ impl ServerModel {
         
         // set up listener and buffer
         let mut buffer = [0; 1024];
-        let listener = TcpListener::bind(self.get_address())?;
+        let listener = TcpListener::bind(self.server.get_address())?;
         listener.set_nonblocking(true)?;
         
         println!("server: spawning threads");
