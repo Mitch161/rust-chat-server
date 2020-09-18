@@ -1,3 +1,7 @@
+pub mod client;
+pub mod server_profile;
+pub mod utility;
+
 use std::{
     net::{TcpStream, TcpListener},
     io::prelude::*,
@@ -7,9 +11,7 @@ use std::{
     io
 };
 
-pub mod client;
-pub mod server_profile;
-pub mod utility;
+use server_profile::Server;
 
 pub struct ServerModel {
     server: Server,
@@ -39,5 +41,9 @@ impl ServerModel {
 
         println!("server: started");
         Ok(())
+    }
+
+    pub fn stop(&self) {
+        self.server.stop();
     }
 }
