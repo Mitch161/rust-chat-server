@@ -86,7 +86,7 @@ pub struct Error;
 pub trait Runnables<T>: Downcast {
     fn run(&self, stream: &mut TcpStream, _input: &T) {
         println!("Server: Invalid Command");
-        utility::transmit_data(stream, Commands::Error.to_string().as_str());
+        let _ = utility::transmit_data(stream, Commands::Error.to_string().as_str());
     }
 
     fn to_string(&self) -> String {
@@ -115,7 +115,7 @@ impl Runnables<Server> for Info {
         let params: HashMap<String, String> = [(String::from("name"), input.get_name()), (String::from("owner"), input.get_author())].iter().cloned().collect();
         let command = Commands::Success(Some(params));
 
-        utility::transmit_data(stream, command.to_string().as_str());
+        let _ = utility::transmit_data(stream, command.to_string().as_str());
     }
 }
 
@@ -145,7 +145,7 @@ impl Runnables<Server> for Connect {
             },
             _ => {
                 println!("Server: Invalid command sent");
-                utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                let _ = utility::transmit_data(stream, Commands::Error.to_string().as_str());
             },
         }
     }
@@ -178,7 +178,7 @@ impl Runnables<ClientProfile> for Info {}
 impl Runnables<ClientProfile> for HeartBeat {
     fn run(&self, stream: &mut TcpStream, input: &ClientProfile) {
         *input.get_last_heartbeat().lock().unwrap() = Instant::now();
-        utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
+        let _ = utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
     }
 }
 
@@ -193,7 +193,7 @@ impl Runnables<ClientProfile> for Disconnect {
 
 impl Runnables<ClientProfile> for ClientUpdate {
     fn run(&self, stream: &mut TcpStream, input: &ClientProfile) {
-        utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
+        let _ = utility::transmit_data(stream, Commands::Success(None).to_string().as_str());
         let _ = input.get_server_sender().send(ServerMessages::RequestUpdate(input.get_stream_arc().clone()));
     }
 }
@@ -210,7 +210,7 @@ impl Runnables<ClientProfile> for ClientInfo {
             },
             _ => {
                 println!("Server: Invalid command sent");
-                utility::transmit_data(stream, Commands::Error.to_string().as_str());
+                let _ = utility::transmit_data(stream, Commands::Error.to_string().as_str());
             },
         }
     }
