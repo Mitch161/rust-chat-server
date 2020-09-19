@@ -88,20 +88,52 @@ pub trait Runnables<T>: Downcast {
         println!("Server: Invalid Command");
         let _ = utility::transmit_data(stream, Commands::Error.to_string().as_str());
     }
-
-    fn to_string(&self) -> String {
-        //<Self as ToString>::to_string(self)
-        self.to_string()
-    }
 }
 downcast_rs::impl_downcast!(Runnables<T>);
-
 
 trait ParameterControl {
     fn get_params(&self) -> Option<&HashMap<String, String>>;
 }
 
 
+
+
+
+/*
+ * Implementation of Display trait for Runnables<T> trait, so each command can
+ * be directly printed.
+ */
+impl std::fmt::Display for dyn Runnables<Server> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(connect) = self.downcast_ref::<Connect>() {
+            return write!(f, "{}", connect.to_string());
+        } else if let Some(info) = self.downcast_ref::<Info>() {
+            return write!(f, "{}", info.to_string());
+        } else if let Some(success) = self.downcast_ref::<Success>() {
+            return write!(f, "{}", success.to_string());
+        }
+
+        write!(f, "!error:")
+    }
+}
+
+impl std::fmt::Display for dyn Runnables<ClientProfile> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(heartbeat) = self.downcast_ref::<HeartBeat>() {
+            return write!(f, "{}", heartbeat.to_string());
+        } else if let Some(disconnect) = self.downcast_ref::<Disconnect>() {
+            return write!(f, "{}", disconnect.to_string());
+        } else if let Some(client_update) = self.downcast_ref::<ClientUpdate>() {
+            return write!(f, "{}", client_update.to_string());
+        } else if let Some(client_info) = self.downcast_ref::<ClientInfo>() {
+            return write!(f, "{}", client_info.to_string());
+        } else if let Some(success) = self.downcast_ref::<Success>() {
+            return write!(f, "{}", success.to_string());
+        }
+
+        write!(f, "!error:")
+    }
+}
 
 
 /*
