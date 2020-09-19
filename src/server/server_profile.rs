@@ -95,10 +95,10 @@ impl Server {
     }
 
     pub fn get_sender(&self) -> Sender<ServerMessages> {
-        self.sender
+        self.sender.clone()
     }
 
-    pub fn start(&self, buffer: &mut [u8; 1024], listener: &TcpListener) -> bool {
+    pub fn start(&self, mut buffer: &mut [u8; 1024], listener: &TcpListener) -> bool {
         std::thread::sleep(Duration::from_millis(100));
 
         // get messages from the servers channel.
@@ -113,7 +113,7 @@ impl Server {
                 },
                 ServerMessages::RequestUpdate(stream_arc) => {
                     for (_k, v) in self.connected_clients.lock().unwrap().iter() {
-                        let stream = stream_arc.lock().unwrap();
+                        let mut stream = stream_arc.lock().unwrap();
 
                         utility::transmit_data(&mut stream, v.to_string().as_str());
                         //self.transmit_data(&stream, v.to_string().as_str());
@@ -128,7 +128,7 @@ impl Server {
                     }
                 },
                 ServerMessages::RequestInfo(uuid, stream_arc) => {
-                    let stream = stream_arc.lock().unwrap();
+                    let mut stream = stream_arc.lock().unwrap();
                     
                     if let Some(client) = self.connected_clients.lock().unwrap().get(&uuid) {
                         let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
@@ -149,7 +149,7 @@ impl Server {
         }
 
         println!("server: checking for new connections");
-        if let Ok((stream, _addr)) = listener.accept() {
+        if let Ok((mut stream, _addr)) = listener.accept() {
             stream.set_read_timeout(Some(Duration::from_millis(1000))).unwrap();
             let _ = stream.set_nonblocking(false);
 
@@ -206,9 +206,9 @@ impl Server {
         let _ = self.connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(command.clone()));
     }
 
-    pub fn add_client(&self, uuid: &str, client: &Client) {
+    pub fn add_client(&self, uuid: &str, client: Client) {
         let mut clients = self.connected_clients.lock().unwrap();
-        clients.insert(uuid.to_string(), *client.clone());
+        clients.insert(uuid.to_string(), client);
     }
 
     pub fn remove_client(&self, uuid: &str) {

@@ -69,7 +69,7 @@ downcast_rs::impl_downcast!(Runnables<T>);
 
 
 trait ParameterControl {
-    fn get_params(&self) -> Option<HashMap<String, String>>;
+    fn get_params(&self) -> Option<&HashMap<String, String>>;
 }
 
 
@@ -95,7 +95,7 @@ impl Runnables<Server> for HeartBeat {}
 
 impl Runnables<Server> for Connect {
     fn run(&self, stream: &mut TcpStream, input: &Server) {
-        let map = self.params.unwrap();
+        let map = self.params.as_ref().unwrap();
 
         let uuid = map.get("uuid");
         let username = map.get("name");
@@ -106,9 +106,9 @@ impl Runnables<Server> for Connect {
             (Some(uuid), Some(username), Some(address)) => {
                 println!("{}", format!("Server: new Client connection: _addr = {:?}", address ));
                 
-                let client = ClientProfile::new(stream, input.get_sender(), uuid, username, address);
+                let client = ClientProfile::new(stream.try_clone().unwrap(), input.get_sender(), uuid, username, address);
 
-                input.add_client(uuid.as_str(), &client);
+                input.add_client(uuid.as_str(), client);
 
                 let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
                 let new_client = Commands::Client(Some(params));
@@ -172,7 +172,7 @@ impl Runnables<ClientProfile> for ClientUpdate {
 
 impl Runnables<ClientProfile> for ClientInfo {
     fn run(&self, stream: &mut TcpStream, input: &ClientProfile) {
-        let map = self.params.unwrap();
+        let map = self.params.as_ref().unwrap();
 
         let uuid = map.get("uuid");
 
@@ -207,67 +207,67 @@ impl Runnables<ClientProfile> for Error {}
  * PartialEq<T> implemented for Request
  */
 impl PartialEq for Request {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _other: &Self) -> bool {
         true
     }
 }
 
 impl PartialEq<Info> for Request {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Request {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for Request {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for Request {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Request {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Request {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Request {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for Request {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for Request {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for Request {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -287,67 +287,67 @@ impl PartialEq<Commands> for Request {
  * PartialEq<T> implemented for Info
  */
 impl PartialEq for Info {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _other: &Self) -> bool {
         true
     }
 }
 
 impl PartialEq<Request> for Info {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Info {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for Info {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for Info {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Info {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Info {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Info {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for Info {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for Info {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for Info {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -367,7 +367,7 @@ impl PartialEq<Commands> for Info {
  */
 impl PartialEq for HeartBeat {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
+        match (self.params.as_ref(), other.get_params()) {
             (None, Some(_other_params)) => false,
             (Some(_params), None) => false,
             (None, None) => true,
@@ -394,61 +394,61 @@ impl PartialEq for HeartBeat {
 }
 
 impl PartialEq<Request> for HeartBeat {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for HeartBeat {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for HeartBeat {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for HeartBeat {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for HeartBeat {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for HeartBeat {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for HeartBeat {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for HeartBeat {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for HeartBeat {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for HeartBeat {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -468,7 +468,7 @@ impl PartialEq<Commands> for HeartBeat {
  */
 impl PartialEq for Connect {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
+        match (self.params.as_ref(), other.get_params()) {
             (None, Some(_other_params)) => false,
             (Some(_params), None) => false,
             (None, None) => true,
@@ -495,61 +495,61 @@ impl PartialEq for Connect {
 }
 
 impl PartialEq<Request> for Connect {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for Connect {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Connect {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for Connect {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Connect {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Connect {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Connect {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for Connect {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for Connect {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for Connect {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -568,67 +568,67 @@ impl PartialEq<Commands> for Connect {
  * PartialEq<T> implemented for Disconnect
  */
 impl PartialEq for Disconnect {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _other: &Self) -> bool {
         true
     }
 }
 
 impl PartialEq<Request> for Disconnect {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for Disconnect {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Disconnect {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for Disconnect {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Disconnect {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Disconnect {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Disconnect {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for Disconnect {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for Disconnect {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for Disconnect {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -647,67 +647,67 @@ impl PartialEq<Commands> for Disconnect {
  * PartialEq<T> implemented for ClientUpdate
  */
 impl PartialEq for ClientUpdate {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _other: &Self) -> bool {
         true
     }
 }
 
 impl PartialEq<Request> for ClientUpdate {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for ClientUpdate {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for ClientUpdate {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for ClientUpdate {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for ClientUpdate {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for ClientUpdate {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for ClientUpdate {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for ClientUpdate {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for ClientUpdate {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for ClientUpdate {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -727,7 +727,7 @@ impl PartialEq<Commands> for ClientUpdate {
  */
 impl PartialEq for ClientInfo {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
+        match (self.params.as_ref(), other.get_params()) {
             (None, Some(_other_params)) => false,
             (Some(_params), None) => false,
             (None, None) => true,
@@ -754,61 +754,61 @@ impl PartialEq for ClientInfo {
 }
 
 impl PartialEq<Request> for ClientInfo {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for ClientInfo {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for ClientInfo {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for ClientInfo {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for ClientInfo {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for ClientInfo {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for ClientInfo {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for ClientInfo {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for ClientInfo {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for ClientInfo {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -828,7 +828,7 @@ impl PartialEq<Commands> for ClientInfo {
  */
 impl PartialEq for ClientRemove {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
+        match (self.params.as_ref(), other.get_params()) {
             (None, Some(_other_params)) => false,
             (Some(_params), None) => false,
             (None, None) => true,
@@ -855,61 +855,61 @@ impl PartialEq for ClientRemove {
 }
 
 impl PartialEq<Request> for ClientRemove {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for ClientRemove {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for ClientRemove {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for ClientRemove {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for ClientRemove {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for ClientRemove {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for ClientRemove {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for ClientRemove {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for ClientRemove {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for ClientRemove {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -929,7 +929,7 @@ impl PartialEq<Commands> for ClientRemove {
  */
 impl PartialEq for Client {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
+        match (self.params.as_ref(), other.get_params()) {
             (None, Some(_other_params)) => false,
             (Some(_params), None) => false,
             (None, None) => true,
@@ -956,61 +956,61 @@ impl PartialEq for Client {
 }
 
 impl PartialEq<Request> for Client {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for Client {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Client {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for Client {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for Client {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Client {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Client {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Client {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for Client {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for Client {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -1030,7 +1030,7 @@ impl PartialEq<Commands> for Client {
  */
 impl PartialEq for Success {
     fn eq(&self, other: &Self) -> bool {
-        match (self.params, other.get_params()) {
+        match (self.params.as_ref(), other.get_params()) {
             (None, Some(_other_params)) => false,
             (Some(_params), None) => false,
             (None, None) => true,
@@ -1057,61 +1057,61 @@ impl PartialEq for Success {
 }
 
 impl PartialEq<Request> for Success {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for Success {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Success {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for Success {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for Success {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Success {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Success {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Success {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for Success {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Error> for Success {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         false
     }
 }
@@ -1130,67 +1130,67 @@ impl PartialEq<Commands> for Success {
  * PartialEq<T> implemented for Error
  */
 impl PartialEq for Error {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _other: &Self) -> bool {
         true
     }
 }
 
 impl PartialEq<Request> for Error {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         false
     }
 }
 
 impl PartialEq<Info> for Error {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         false
     }
 }
 
 impl PartialEq<HeartBeat> for Error {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         false
     }
 }
 
 impl PartialEq<Connect> for Error {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         false
     }
 }
 
 impl PartialEq<Disconnect> for Error {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientUpdate> for Error {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientInfo> for Error {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         false
     }
 }
 
 impl PartialEq<ClientRemove> for Error {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         false
     }
 }
 
 impl PartialEq<Client> for Error {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         false
     }
 }
 
 impl PartialEq<Success> for Error {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         false
     }
 }
@@ -1372,38 +1372,38 @@ impl ToString for Error {
 
 
 impl ParameterControl for HeartBeat {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
+    fn get_params(&self) -> Option<&HashMap<String, String>> {
+        self.params.as_ref()
     }
 }
 
 impl ParameterControl for Connect {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
+    fn get_params(&self) -> Option<&HashMap<String, String>> {
+        self.params.as_ref()
     }
 
 }
 
 impl ParameterControl for ClientInfo {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
+    fn get_params(&self) -> Option<&HashMap<String, String>> {
+        self.params.as_ref()
     }
 }
 
 impl ParameterControl for ClientRemove {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
+    fn get_params(&self) -> Option<&HashMap<String, String>> {
+        self.params.as_ref()
     }
 }
 
 impl ParameterControl for Client {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
+    fn get_params(&self) -> Option<&HashMap<String, String>> {
+        self.params.as_ref()
     }
 }
 
 impl ParameterControl for Success {
-    fn get_params(&self) -> Option<HashMap<String, String>> {
-        self.params
+    fn get_params(&self) -> Option<&HashMap<String, String>> {
+        self.params.as_ref()
     }
 }
