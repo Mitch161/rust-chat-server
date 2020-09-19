@@ -24,9 +24,23 @@ pub struct Info;
 pub struct HeartBeat {
     params: Option<HashMap<String, String>>,
 }
+impl HeartBeat {
+    pub fn new(params: &Option<HashMap<String, String>>) -> Self {
+        Self {
+            params: params.clone(),
+        }
+    }
+}
 
 pub struct Connect {
     params: Option<HashMap<String, String>>,
+}
+impl Connect {
+    pub fn new(params: &Option<HashMap<String, String>>) -> Self {
+        Self {
+            params: params.clone(),
+        }
+    }
 }
 
 pub struct Disconnect;
@@ -35,6 +49,13 @@ pub struct ClientUpdate;
 
 pub struct ClientInfo {
     params: Option<HashMap<String, String>>,
+}
+impl ClientInfo {
+    pub fn new(params: &Option<HashMap<String, String>>) -> Self {
+        Self {
+            params: params.clone(),
+        }
+    }
 }
 
 pub struct ClientRemove {
@@ -47,6 +68,13 @@ pub struct Client {
 
 pub struct Success {
     params: Option<HashMap<String, String>>,
+}
+impl Success {
+    pub fn new(params: &Option<HashMap<String, String>>) -> Self {
+        Self {
+            params: params.clone(),
+        }
+    }
 }
 
 pub struct Error;
