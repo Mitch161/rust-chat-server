@@ -3,13 +3,10 @@ pub mod server_profile;
 pub mod utility;
 
 use std::{
-    net::{TcpStream, TcpListener},
-    io::prelude::*,
-    time::Duration,
+    net::TcpListener,
     sync::Arc,
     io::Error as IoError,
     thread,
-    io
 };
 
 use server_profile::Server;

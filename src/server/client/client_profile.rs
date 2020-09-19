@@ -8,7 +8,6 @@ use std::{
     io::Error as IoError,
     //collections::HashMap,
     time::{Instant, Duration},
-    io,
 };
 
 use crossbeam::{
@@ -32,7 +31,6 @@ use crate::{
     commands::GenerateFrom,
     commands::behaviors::{
         Runnables,
-        Disconnect,
         Success,
         Error,
     },

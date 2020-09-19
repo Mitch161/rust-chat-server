@@ -1,4 +1,3 @@
-use crate::commands::Commands;
 use std::net::TcpStream;
 use std::io::Error;
 use std::io::Write;

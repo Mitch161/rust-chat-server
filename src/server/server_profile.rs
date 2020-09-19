@@ -14,8 +14,6 @@ use crate::{
         Runnables,
         Success,
         Error,
-        ClientRemove,
-        Request,
     },
 };
 
@@ -26,8 +24,6 @@ use std::{
     io::prelude::*,
     time::Duration,
     io::Error as IoError,
-    thread,
-    io
 };
 
 use log::info;
