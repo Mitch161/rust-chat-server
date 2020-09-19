@@ -111,7 +111,7 @@ impl Server {
                         let _ = utility::transmit_data(&mut stream, v.to_string().as_str());
                         //self.transmit_data(&stream, v.to_string().as_str());
 
-                        if let Some(success) = self.read_data(&stream, &mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
+                        if let Some(_success) = self.read_data(&stream, &mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             println!("Success Confirmed");
                         } else {
                             println!("no success read");

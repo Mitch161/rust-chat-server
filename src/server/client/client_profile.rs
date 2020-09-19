@@ -130,15 +130,15 @@ impl Client {
             /*command is on the channel*/ 
             Ok(Commands::ClientRemove(Some(params))) => {
                 let mut retry: u8 = 3;
-                'retry_loop: loop {
+                'retry_loop1: loop {
                     if retry < 1 {
                         let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
-                        break 'retry_loop;
+                        break 'retry_loop1;
                     } else {                    
                         let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params.clone())).to_string().as_str());
 
-                        if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
-                            break 'retry_loop;
+                        if let Some(_success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
+                            break 'retry_loop1;
                         } else {
                             retry -= 1;
                         }
@@ -147,15 +147,15 @@ impl Client {
             },
             Ok(Commands::Client(Some(params))) => {
                 let mut retry: u8 = 3;
-                'retry_loop: loop {
+                'retry_loop2: loop {
                     if retry < 1 {
                         let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
-                        break 'retry_loop;
+                        break 'retry_loop2;
                     } else {
                         let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params.clone())).to_string().as_str());
                         
-                        if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
-                            break 'retry_loop;
+                        if let Some(_success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
+                            break 'retry_loop2;
                         } else {
                             retry -= 1;
                         }
