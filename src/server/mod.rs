@@ -6,6 +6,7 @@ use std::{
     net::{TcpStream, TcpListener},
     io::prelude::*,
     time::Duration,
+    sync::Arc,
     io::Error as IoError,
     thread,
     io
@@ -14,27 +15,29 @@ use std::{
 use server_profile::Server;
 
 pub struct ServerModel {
-    server: Server,
+    server_arc: Arc<Server>,
 }
 
 impl ServerModel {
     pub fn new(server_name: &str, server_address: &str, server_email: &str) -> Self {
         Self {
-            server: Server::new(server_name, server_address, server_email),
+            server_arc: Arc::new(Server::new(server_name, server_address, server_email)),
         }
     }
 
-    pub fn start(&mut self) -> Result<(), IoError> {
+    pub fn start(&self) -> Result<(), IoError> {
         println!("server: starting server...");
         
         // set up listener and buffer
         let mut buffer = [0; 1024];
-        let listener = TcpListener::bind(self.server.get_address())?;
+        let listener = TcpListener::bind(self.server_arc.get_address())?;
         listener.set_nonblocking(true)?;
         
+        let server = self.server_arc.clone();
+
         println!("server: spawning threads");
         let _ = thread::Builder::new().name("Server Thread".to_string()).spawn(move || {
-            while self.server.start(&mut buffer, &listener) {}
+            while server.start(&mut buffer, &listener) {}
             
             println!("server: stopped");
         });
@@ -44,6 +47,6 @@ impl ServerModel {
     }
 
     pub fn stop(&self) {
-        self.server.stop();
+        self.server_arc.stop();
     }
 }
