@@ -47,9 +47,6 @@ pub enum ServerMessages {
     Shutdown,
 }
 
-pub enum ClientMessage {
-}
-
 // MARK: - server struct
 #[derive(Debug)]
 pub struct Server {
