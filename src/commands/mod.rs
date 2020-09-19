@@ -238,14 +238,14 @@ impl ToString for Commands {
         let (command, parameters): (&str, Option<HashMap<String, String>>) = match self {
             Commands::Request => ("!request:", None),
             Commands::Info => ("!info:", None),
-            Commands::HeartBeat(arguments) => ("!heartbeat:", *arguments),
-            Commands::Connect(arguments) => ("!connect:", *arguments),
+            Commands::HeartBeat(arguments) => ("!heartbeat:", arguments.clone()),
+            Commands::Connect(arguments) => ("!connect:", arguments.clone()),
             Commands::Disconnect => ("!disconnect:", None),
             Commands::ClientUpdate => ("!clientUpdate:", None),
-            Commands::ClientInfo(arguments) => ("!clientInfo:", *arguments),
-            Commands::ClientRemove(arguments) => ("!clientRemove", *arguments),
-            Commands::Client(arguments) => ("!client:", *arguments),
-            Commands::Success(arguments) => ("!success:", *arguments),
+            Commands::ClientInfo(arguments) => ("!clientInfo:", arguments.clone()),
+            Commands::ClientRemove(arguments) => ("!clientRemove", arguments.clone()),
+            Commands::Client(arguments) => ("!client:", arguments.clone()),
+            Commands::Success(arguments) => ("!success:", arguments.clone()),
             Commands::Error => ("!error:", None),
         };
 
@@ -357,7 +357,7 @@ impl PartialEq for Commands {
 }
 
 impl PartialEq<Request> for Commands {
-    fn eq(&self, other: &Request) -> bool {
+    fn eq(&self, _other: &Request) -> bool {
         if let Commands::Request = self {
             return true;
         }
@@ -367,7 +367,7 @@ impl PartialEq<Request> for Commands {
 }
 
 impl PartialEq<Info> for Commands {
-    fn eq(&self, other: &Info) -> bool {
+    fn eq(&self, _other: &Info) -> bool {
         if let Commands::Info = self {
             return true;
         }
@@ -377,7 +377,7 @@ impl PartialEq<Info> for Commands {
 }
 
 impl PartialEq<HeartBeat> for Commands {
-    fn eq(&self, other: &HeartBeat) -> bool {
+    fn eq(&self, _other: &HeartBeat) -> bool {
         if let Commands::HeartBeat(_) = self {
             return true;
         }
@@ -387,7 +387,7 @@ impl PartialEq<HeartBeat> for Commands {
 }
 
 impl PartialEq<Connect> for Commands {
-    fn eq(&self, other: &Connect) -> bool {
+    fn eq(&self, _other: &Connect) -> bool {
         if let Commands::Connect(_) = self {
             return true;
         }
@@ -397,7 +397,7 @@ impl PartialEq<Connect> for Commands {
 }
 
 impl PartialEq<Disconnect> for Commands {
-    fn eq(&self, other: &Disconnect) -> bool {
+    fn eq(&self, _other: &Disconnect) -> bool {
         if let Commands::Disconnect = self {
             return true;
         }
@@ -407,7 +407,7 @@ impl PartialEq<Disconnect> for Commands {
 }
 
 impl PartialEq<ClientUpdate> for Commands {
-    fn eq(&self, other: &ClientUpdate) -> bool {
+    fn eq(&self, _other: &ClientUpdate) -> bool {
         if let Commands::ClientUpdate = self {
             return true;
         }
@@ -417,7 +417,7 @@ impl PartialEq<ClientUpdate> for Commands {
 }
 
 impl PartialEq<ClientInfo> for Commands {
-    fn eq(&self, other: &ClientInfo) -> bool {
+    fn eq(&self, _other: &ClientInfo) -> bool {
         if let Commands::ClientInfo(_) = self {
             return true;
         }
@@ -427,7 +427,7 @@ impl PartialEq<ClientInfo> for Commands {
 }
 
 impl PartialEq<ClientRemove> for Commands {
-    fn eq(&self, other: &ClientRemove) -> bool {
+    fn eq(&self, _other: &ClientRemove) -> bool {
         if let Commands::ClientRemove(_) = self {
             return true;
         }
@@ -437,7 +437,7 @@ impl PartialEq<ClientRemove> for Commands {
 }
 
 impl PartialEq<Client> for Commands {
-    fn eq(&self, other: &Client) -> bool {
+    fn eq(&self, _other: &Client) -> bool {
         if let Commands::Client(_) = self {
             return true;
         }
@@ -447,7 +447,7 @@ impl PartialEq<Client> for Commands {
 }
 
 impl PartialEq<Success> for Commands {
-    fn eq(&self, other: &Success) -> bool {
+    fn eq(&self, _other: &Success) -> bool {
         if let Commands::Success(_) = self {
             return true;
         }
@@ -457,7 +457,7 @@ impl PartialEq<Success> for Commands {
 }
 
 impl PartialEq<Error> for Commands {
-    fn eq(&self, other: &Error) -> bool {
+    fn eq(&self, _other: &Error) -> bool {
         if let Commands::Error = self {
             return true;
         }

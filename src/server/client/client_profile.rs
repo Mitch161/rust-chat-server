@@ -59,12 +59,12 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(stream: &TcpStream, server_sender: Sender<ServerMessages>, uuid: &str, username: &str, address: &str) -> Self {
+    pub fn new(stream: TcpStream, server_sender: Sender<ServerMessages>, uuid: &str, username: &str, address: &str) -> Self {
         let (sender, receiver): (Sender<Commands>, Receiver<Commands>) = unbounded();
         stream.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
 
         Client {
-            stream_arc: Arc::new(Mutex::new(*stream)),
+            stream_arc: Arc::new(Mutex::new(stream)),
             uuid: uuid.to_string(),
             username: username.to_string(),
             address: address.to_string(),
@@ -94,7 +94,7 @@ impl Client {
     }
 
     pub fn get_last_heartbeat(&self) -> Arc<Mutex<Instant>> {
-        self.last_heartbeat
+        self.last_heartbeat.clone()
     }
 
     pub fn get_server_sender(&self) -> &Sender<ServerMessages> {
@@ -102,7 +102,7 @@ impl Client {
     }
 
     pub fn get_stream_arc(&self) -> Arc<Mutex<TcpStream>> {
-        self.stream_arc
+        self.stream_arc.clone()
     }
 
     // TODO: - add heartbeat timer.
@@ -137,7 +137,7 @@ impl Client {
                         utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {                    
-                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params)).to_string().as_str());
+                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params.clone())).to_string().as_str());
 
                         if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             break 'retry_loop;
@@ -154,7 +154,7 @@ impl Client {
                         utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {
-                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params)).to_string().as_str());
+                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params.clone())).to_string().as_str());
                         
                         if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             break 'retry_loop;
