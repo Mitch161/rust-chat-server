@@ -137,7 +137,7 @@ impl Runnables<Server> for Connect {
                 
                 let client = ClientProfile::new(stream.try_clone().unwrap(), input.get_sender(), uuid, username, address);
 
-                input.add_client(uuid.as_str(), client);
+                input.get_connected_clients().lock().unwrap().insert(uuid.to_string(), client);
 
                 let params: HashMap<String, String> = [(String::from("name"), username.clone()), (String::from("host"), address.clone()), (String::from("uuid"), uuid.clone())].iter().cloned().collect();
                 let new_client = Commands::Client(Some(params));
