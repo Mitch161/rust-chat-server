@@ -102,9 +102,9 @@ impl Conversion<Server> for CommandsAPI {
         Ok(match command {
             "!info:" if params.is_none() => Box::new(Info),
 
-            "!connect:" if params.is_some() => Box::new(Connect {params: params.clone()}),
+            "!connect:" if params.is_some() => Box::new(Connect::new(&params)), //{params: params.clone()}),
             
-            "!success:" => Box::new(Success {params: params.clone()}),
+            "!success:" => Box::new(Success::new(&params)), //{params: params.clone()}),
 
             "!error:" if params.is_none() => Box::new(Error),
  
@@ -139,15 +139,15 @@ impl Conversion<ClientProfile> for CommandsAPI {
         let params = if map.capacity() > 0 {Some(map)} else { None };
 
         Ok(match command {
-            "!heartbeat:" => Box::new(HeartBeat {params: params.clone()}),
+            "!heartbeat:" => Box::new(HeartBeat::new(&params)), //{params: params.clone()}),
 
             "!disconnect:" if params.is_none() => Box::new(Disconnect),
 
             "!clientUpdate:" if params.is_none() => Box::new(ClientUpdate),
 
-            "!clientInfo:" if params.is_some() => Box::new(ClientInfo {params: params.clone()}),
+            "!clientInfo:" if params.is_some() => Box::new(ClientInfo::new(&params)), //{params: params.clone()}),
 
-            "!success:" => Box::new(Success {params: params.clone()}),
+            "!success:" => Box::new(Success::new(&params)), //{params: params.clone()}),
 
             "!error:" if params.is_none() => Box::new(Error),
             
