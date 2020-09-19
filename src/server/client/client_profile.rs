@@ -177,22 +177,6 @@ impl Client {
         self.stream_arc.lock().unwrap().shutdown(Shutdown::Both).expect("shutdown call failed");
     }
 
-    #[deprecated(since="01.09.20", note="Please use utility::transmit_data(...) instead.")]
-    pub fn transmit_data(&self, data: &str) {
-        /*println!("Transmitting data: {}", data);
-
-        let error_result = self.stream_arc.lock().unwrap().write_all(data.to_string().as_bytes());
-        if let Some(error) = error_result.err(){
-            match error.kind() {
-                // handle disconnections
-                io::ErrorKind::NotConnected => {
-                    let _ = self.server_sender.send(ServerMessages::Disconnect(self.uuid.clone()));
-                },
-                _ => { },
-            }
-        }*/
-    }
-
     fn read_data(&mut self, buffer: &mut [u8; 1024]) -> Result<Box<dyn Runnables<Client>>, IoError> {
         self.stream_arc.lock().unwrap().read(buffer)?;
         let command = <CommandsAPI as GenerateFrom<&mut [u8; 1024], Client>>::generate_from(buffer);

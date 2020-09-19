@@ -177,20 +177,6 @@ impl Server {
         info!("server: sending stop message");
         let _ = self.sender.send(ServerMessages::Shutdown);
     }
-
-    #[deprecated(since="01.09.20", note="Please use utility::transmit_data(...) instead.")]
-    fn transmit_data(&self, mut stream: &TcpStream, data: &str){
-        /*println!("Transmitting...");
-        println!("data: {}", data);
-
-        /*
-         * This will throw an error and crash any thread, including the main thread, if
-         * the connection is lost before transmitting. Maybe change to handle any exceptions
-         * that may occur.
-         */
-        let _ = stream.write(data.to_string().as_bytes()).unwrap();
-        stream.flush().unwrap();*/
-    }
     
     fn read_data(&self, mut stream: &TcpStream, buffer: &mut [u8; 1024]) -> Result<Box<dyn Runnables<Server>>, IoError> {
         stream.read(buffer)?;
