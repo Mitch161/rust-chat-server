@@ -91,7 +91,11 @@ impl Server {
         self.sender.clone()
     }
 
-    pub fn start(&self, mut buffer: &mut [u8; 1024], listener: &TcpListener) -> bool {
+    pub fn get_connected_clients(&self) -> Arc<Mutex<HashMap<String, Client>>> {
+        self.connected_clients.clone()
+    }
+
+    pub fn step(&self, mut buffer: &mut [u8; 1024], listener: &TcpListener) -> bool {
         std::thread::sleep(Duration::from_millis(100));
 
         // get messages from the servers channel.
@@ -183,11 +187,6 @@ impl Server {
     
     pub fn update_all_clients(&self, command: &Commands) {
         let _ = self.connected_clients.lock().unwrap().iter().map(|(_k, v)| v.sender.send(command.clone()));
-    }
-
-    pub fn add_client(&self, uuid: &str, client: Client) {
-        let mut clients = self.connected_clients.lock().unwrap();
-        clients.insert(uuid.to_string(), client);
     }
 
     pub fn remove_client(&self, uuid: &str) {

@@ -34,7 +34,7 @@ impl ServerModel {
 
         println!("server: spawning threads");
         let _ = thread::Builder::new().name("Server Thread".to_string()).spawn(move || {
-            while server.start(&mut buffer, &listener) {}
+            while server.step(&mut buffer, &listener) {}
             
             println!("server: stopped");
         });
