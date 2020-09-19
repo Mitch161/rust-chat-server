@@ -134,10 +134,10 @@ impl Client {
                 let mut retry: u8 = 3;
                 'retry_loop: loop {
                     if retry < 1 {
-                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
+                        let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {                    
-                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params.clone())).to_string().as_str());
+                        let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::ClientRemove(Some(params.clone())).to_string().as_str());
 
                         if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             break 'retry_loop;
@@ -151,10 +151,10 @@ impl Client {
                 let mut retry: u8 = 3;
                 'retry_loop: loop {
                     if retry < 1 {
-                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
+                        let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Error.to_string().as_str());
                         break 'retry_loop;
                     } else {
-                        utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params.clone())).to_string().as_str());
+                        let _ = utility::transmit_data(&mut self.stream_arc.lock().unwrap(), Commands::Client(Some(params.clone())).to_string().as_str());
                         
                         if let Some(success) = self.read_data(&mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
                             break 'retry_loop;

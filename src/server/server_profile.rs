@@ -115,7 +115,7 @@ impl Server {
                     for (_k, v) in self.connected_clients.lock().unwrap().iter() {
                         let mut stream = stream_arc.lock().unwrap();
 
-                        utility::transmit_data(&mut stream, v.to_string().as_str());
+                        let _ = utility::transmit_data(&mut stream, v.to_string().as_str());
                         //self.transmit_data(&stream, v.to_string().as_str());
 
                         if let Some(success) = self.read_data(&stream, &mut buffer).unwrap_or(Box::new(Error)).downcast_ref::<Success>() {
@@ -123,7 +123,7 @@ impl Server {
                         } else {
                             println!("no success read");
                             let error = Commands::Error;
-                            utility::transmit_data(&mut stream, error.to_string().as_str());
+                            let _ = utility::transmit_data(&mut stream, error.to_string().as_str());
                         }
                     }
                 },
@@ -133,10 +133,10 @@ impl Server {
                     if let Some(client) = self.connected_clients.lock().unwrap().get(&uuid) {
                         let params: HashMap<String, String> = [(String::from("uuid"), client.get_uuid()), (String::from("name"), client.get_username()), (String::from("host"), client.get_address())].iter().cloned().collect();
                         let command = Commands::Success(Some(params));
-                        utility::transmit_data(&mut stream, command.to_string().as_str());
+                        let _ = utility::transmit_data(&mut stream, command.to_string().as_str());
                     } else {
                         let command = Commands::Success(None);
-                        utility::transmit_data(&mut stream, command.to_string().as_str());
+                        let _ = utility::transmit_data(&mut stream, command.to_string().as_str());
                     }
                 },
                 ServerMessages::Disconnect(uuid) => {
@@ -154,7 +154,7 @@ impl Server {
             let _ = stream.set_nonblocking(false);
 
             let request = Commands::Request;
-            utility::transmit_data(&mut stream, request.to_string().as_str());
+            let _ = utility::transmit_data(&mut stream, request.to_string().as_str());
             //self.transmit_data(&stream, &request.to_string().as_str());
 
             match self.read_data(&stream, &mut buffer) {
