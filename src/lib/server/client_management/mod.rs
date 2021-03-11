@@ -11,9 +11,9 @@ use uuid::Uuid;
 
 use self::client::Client;
 use self::client::ClientMessage;
-// use client::client_v3::Client;
 use self::traits::TClientManager;
-use client::traits::TClient;
+use self::client::traits::TClient;
+
 
 enum ClientManagerMessages {}
 
@@ -109,7 +109,15 @@ mod test {
 
   #[test]
   fn test_add_client() {
-    todo!()
+    let client1 = Client::new();
+		let client2 = Client::new();
+
+		let client_manager = ClientManager::new();
+
+		client_manager.add_client(client1);
+		client_manager.add_client(client2);
+
+		
   }
 
   #[test]
